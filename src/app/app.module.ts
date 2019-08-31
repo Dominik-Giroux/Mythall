@@ -64,6 +64,7 @@ import { TermsOfServiceComponent } from './content/defaults/terms-of-service/ter
 
 import { JeuAptitudesComponent } from './content/jeu/aptitudes/aptitudes.component';
 import { JeuClassesComponent } from './content/jeu/classes/classes.component';
+import { JeuClasseDetailsDialogComponent } from './content/jeu/classes/details/details.dialog.component';
 import { JeuClassesPrestigeComponent } from './content/jeu/classes-prestige/classes-prestige.component';
 import { JeuDonsComponent } from './content/jeu/dons/dons.component';
 import { JeuRacesComponent } from './content/jeu/races/races.component';
@@ -254,6 +255,7 @@ const appRoutes: Routes = [
     DeleteDialogComponent,
     ErrorDialogComponent,
     LoadingDialogComponent,
+    JeuClasseDetailsDialogComponent,
     JeuSortDetailsDialogComponent
   ],
   declarations: [
@@ -273,6 +275,7 @@ const appRoutes: Routes = [
     TermsOfServiceComponent,
     JeuAptitudesComponent,
     JeuClassesComponent,
+    JeuClasseDetailsDialogComponent,
     JeuClassesPrestigeComponent,
     JeuDonsComponent,
     JeuRacesComponent,

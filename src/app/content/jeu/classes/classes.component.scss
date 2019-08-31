@@ -20,3 +20,13 @@ nav {
         }
     }
 }
+
+.mat-card-title{
+    color: $primary;
+    transition: $transition-base;
+
+    &:hover{
+        color: $secondary;
+        cursor: pointer;
+    }
+}

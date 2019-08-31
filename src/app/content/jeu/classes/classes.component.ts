@@ -2,6 +2,8 @@ import { Component, OnInit } from '@angular/core';
 
 import { ClasseService } from '../../../services/classes/classe.service';
 import { Classe } from '../../../services/classes/models/classe';
+import { MatDialog } from '@angular/material';
+import { JeuClasseDetailsDialogComponent } from './details/details.dialog.component';
 
 @Component({
   selector: 'app-jeu-classes',
@@ -11,6 +13,7 @@ import { Classe } from '../../../services/classes/models/classe';
 export class JeuClassesComponent implements OnInit {
 
   constructor(
+    public dialog: MatDialog,
     private classeService: ClasseService
   ){}
 
@@ -29,6 +32,13 @@ export class JeuClassesComponent implements OnInit {
       this.classes = response;
     });
 
+  }
+
+  displayDetails(id) {
+    let dialogRef = this.dialog.open(JeuClasseDetailsDialogComponent, {
+      width: 'auto',
+      data: id
+    });
   }
 
   scroll(el) {

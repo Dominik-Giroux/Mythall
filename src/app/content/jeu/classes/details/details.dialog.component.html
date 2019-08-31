@@ -1,0 +1,48 @@
+<div class="details-modal">
+  <h2 mat-dialog-title class="text-center">
+    <span *ngIf="classe" [innerHtml]="classe?.nom"></span>
+  </h2>
+  <mat-dialog-content>
+    <div class="row">
+      <div *ngIf="!classe" class="col-12">
+        <mat-spinner></mat-spinner>
+      </div>
+      <div *ngIf="classe" class="col-12">
+
+        <strong>Description: </strong>
+        <span [innerHtml]="classe?.nom"></span>
+        <br />
+
+        <strong>Obligation(s): </strong>
+        <span [innerHtml]="classe?.nom"></span>
+        <br />
+
+        <strong>Avantage(s): </strong>
+        <span [innerHtml]="classe?.nom"></span>
+        <br />
+
+        <strong>Désavantage(s): </strong>
+        <span [innerHtml]="classe?.nom"></span>
+        <br />
+
+        <strong>Multiclassement(s): </strong>
+        <span [innerHtml]="classe?.nom"></span>
+        <br />
+
+        <strong>Capacité(s) spéciale(s): </strong>
+        <span [innerHtml]="classe?.nom"></span>
+        <br />
+
+        <strong>Dons: </strong>
+        <span [innerHtml]="classe?.nom"></span>
+        <br />
+
+        <strong>Progression: </strong>
+        <span [innerHtml]="classe?.nom"></span>
+        <br />
+
+        <br />
+      </div>
+    </div>
+  </mat-dialog-content>
+</div>

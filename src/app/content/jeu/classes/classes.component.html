@@ -10,7 +10,7 @@
   <div class="row">
     <div class="col-12 col-md-10 order-2 order-md-1">
       <mat-card *ngFor="let classe of classes" [id]="classe.nom" class="mb-4">
-        <mat-card-title [innerHtml]="classe.nom"></mat-card-title>
+        <mat-card-title (click)="displayDetails(classe.id)" [innerHtml]="classe.nom"></mat-card-title>
         <mat-card-content>
           <p><i [innerHtml]="classe.description"></i></p>
 
