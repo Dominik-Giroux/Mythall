@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { Alignements } from '../../../../models/alignement';
+import { Alignement } from '../../../../migration/models/alignement';
 import { MatDialog } from '@angular/material/dialog';
 
 @Component({
@@ -13,6 +13,6 @@ export class OrganisateurAlignementsListComponent {
     public dialog: MatDialog,
   ) { }
 
-  alignements = Object.values(Alignements);
+  alignements = Object.values(Alignement);
 
 }

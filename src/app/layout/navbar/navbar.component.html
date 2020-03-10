@@ -9,6 +9,7 @@
   <button mat-button routerLink="/">
     <img class="logo-icon" src="/assets/img/logo-wht.png" alt="Logo" />
     <span *ngIf="false">Mythall</span>
+    <span *ngIf="!environement.production">DEV</span>
   </button>
 
   <!--Spacer-->

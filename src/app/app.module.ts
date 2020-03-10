@@ -32,6 +32,7 @@ import { StatistiqueService } from './services/statistique.service';
 import { SortService } from './services/sorts/sort.service';
 import { UserService } from './services/@core/user.service';
 import { ZoneService } from './services/zone.service';
+import { MigrationPersonnageService } from './migration/scripts/migration-personnage.service';
 
 //Pipes
 import { DocPipe } from './services/firestore/doc.pipe';
@@ -365,6 +366,7 @@ const appRoutes: Routes = [
     StatistiqueService,
     SortService,
     UserService,
+    MigrationPersonnageService,
     ZoneService,
     MediaMatcher,
     Snackbar

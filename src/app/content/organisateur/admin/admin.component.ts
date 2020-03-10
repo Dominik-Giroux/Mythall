@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { AdminService } from '../../../services/@core/admin.service';
+import { MigrationPersonnageService } from '../../../migration/scripts/migration-personnage.service';
 
 @Component({
   selector: 'app-organisateur-admin',
@@ -8,11 +8,11 @@ import { AdminService } from '../../../services/@core/admin.service';
 export class OrganisateurAdminComponent implements OnInit {
 
   constructor(
-    private adminService: AdminService
+    private migrationPersonnage: MigrationPersonnageService,
   ) { }
 
-  ngOnInit() {
-
+  async ngOnInit() {
+    await this.migrationPersonnage.migratePersonnage('uI5G5QdrjuiBXFOq4Upz');
   }
 
 }
