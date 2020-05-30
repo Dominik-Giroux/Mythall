@@ -1,10 +1,10 @@
 import { Injectable } from '@angular/core';
 import { AngularFirestore } from '@angular/fire/firestore';
 import { ImmuniteService, IImmunite } from './immunite.service';
-import { ResistanceService, ResistanceItem } from './resistance.service';
-import { StatistiqueService, StatistiqueItem } from './statistique.service';
+import { ResistanceService, ResistanceItem, IResistanceDB } from './resistance.service';
+import { StatistiqueService, StatistiqueItem, IStatistique } from './statistique.service';
 import { IDon } from './don.service';
-import { Choix } from './personnage.service';
+import { Choix, IPersonnage } from './personnage.service';
 
 export interface IAptitude extends IAptitudeDB {
   id: string;
@@ -26,9 +26,9 @@ export interface IAptitudeDB {
 
 export class AptitudeItem {
   constructor() {
-      this.aptitude = null;
-      this.aptitudeRef = '';
-      this.niveauObtention = 1;
+    this.aptitude = null;
+    this.aptitudeRef = '';
+    this.niveauObtention = 1;
   }
 
   aptitude: IAptitude;
@@ -66,9 +66,11 @@ export class AptitudeService {
       ...data.data()
     } as IAptitude;
 
-    this._getImmunites(aptitude);
-    this._getResistances(aptitude);
-    this._getStatistiques(aptitude);
+    await Promise.all([
+      this._getImmunites(aptitude),
+      this._getResistances(aptitude),
+      this._getStatistiques(aptitude)
+    ]);
 
     return aptitude;
   }
@@ -86,6 +88,107 @@ export class AptitudeService {
   public async deleteAptitude(id: string): Promise<boolean> {
     await this.afs.doc<IAptitude>(`aptitudes/${id}`).delete();
     return true;
+  }
+
+  public async getPersonnageAptitudes(personnage: IPersonnage): Promise<IPersonnage> {
+
+    // Aptitudes Racial
+    if (personnage.race && personnage.race.aptitudesRacialRef && personnage.race.aptitudesRacialRef.length > 0) {
+      personnage.race.aptitudesRacialRef.forEach(aptitudeRef => {
+        let aptitudeItem = new AptitudeItem();
+        aptitudeItem.aptitudeRef = aptitudeRef;
+        personnage.aptitudes.push(aptitudeItem);
+      })
+    };
+
+    // Aptitudes Classes
+    if (personnage.classes && personnage.classes.length > 0) {
+      personnage.classes.forEach(classeItem => {
+        if (classeItem.classe.aptitudes && classeItem.classe.aptitudes.length > 0) {
+          classeItem.classe.aptitudes.forEach(aptitudeItem => {
+            if (classeItem.niveau >= aptitudeItem.niveauObtention) {
+              if (!personnage.aptitudes) personnage.aptitudes = [];
+              personnage.aptitudes.push(aptitudeItem);
+            }
+          })
+        }
+      });
+    }
+
+    // Aptitudes Domaines
+    if (personnage.domaines && personnage.domaines.length > 0) {
+      personnage.domaines.forEach(domaine => {
+        if (domaine.aptitudes && domaine.aptitudes.length > 0) {
+          domaine.aptitudes.forEach(aptitudeItem => {
+            personnage.classes.forEach(classe => {
+              if (classe.classeRef == 'fNqknNgq0QmHzUaYEvEd' && classe.niveau >= aptitudeItem.niveauObtention) {
+                personnage.aptitudes.push(aptitudeItem);
+              }
+            })
+          })
+        }
+      });
+    }
+
+    // Aptitudes Esprit
+    if (personnage.esprit && personnage.esprit.aptitudes && personnage.esprit.aptitudes.length > 0) {
+      personnage.esprit.aptitudes.forEach(aptitudeItem => {
+        personnage.classes.forEach(classe => {
+          if (classe.classeRef == 'wW48swrqmr77awfyADMX' && classe.niveau >= aptitudeItem.niveauObtention) {
+            personnage.aptitudes.push(aptitudeItem);
+          }
+        })
+      })
+    };
+
+    // Remplis la liste de aptitudes complète
+    let count: number = 0;
+    if (!personnage.aptitudes) personnage.aptitudes = [];
+
+    if (personnage.aptitudes && personnage.aptitudes.length > 0) {
+
+      personnage.aptitudes.forEach(async (aptitudeItem) => {
+
+        if (!aptitudeItem.aptitude) {
+          const aptitude = await this.getAptitude(aptitudeItem.aptitudeRef);
+          aptitudeItem.aptitude = aptitude;
+          count++;
+          if (count == personnage.aptitudes.length) {
+
+            // Filter Duplicates
+            personnage.aptitudes = personnage.aptitudes.filter((aptitude, index, self) =>
+              index === self.findIndex((d) => (
+                d.aptitudeRef === aptitude.aptitudeRef
+              ))
+            )
+
+            return personnage;
+
+          }
+
+        } else {
+
+          count++;
+          if (count == personnage.aptitudes.length) {
+
+            // Filter Duplicates
+            personnage.aptitudes = personnage.aptitudes.filter((aptitude, index, self) =>
+              index === self.findIndex((d) => (
+                d.aptitudeRef === aptitude.aptitudeRef
+              ))
+            )
+
+            return personnage;
+
+          }
+        }
+
+      });
+
+    } else {
+      return personnage;
+    }
+
   }
 
   private _saveState(item: IAptitude): IAptitudeDB {
@@ -117,29 +220,28 @@ export class AptitudeService {
     };
   }
 
-  private _getImmunites(aptitude: IAptitude) {
-    if (aptitude.immunitesRef) {
-      aptitude.immunitesRef.forEach(async (immuniteRef) => {
+  private async _getImmunites(aptitude: IAptitude): Promise<void> {
+    await Promise.all<any>(
+      aptitude.immunitesRef.map(async (immuniteRef) => {
         if (!aptitude.immunites) aptitude.immunites = [];
         aptitude.immunites.push(await this.immuniteService.getImmunite(immuniteRef));
-      });
-    }
+      })
+    )
   }
 
-  private _getResistances(aptitude: IAptitude): void {
-    if (aptitude.resistances && aptitude.resistances.length > 0) {
-      aptitude.resistances.forEach(async (resistanceItem: ResistanceItem) => {
+  private async _getResistances(aptitude: IAptitude): Promise<void> {
+    await Promise.all<any>(
+      aptitude.resistances.map(async (resistanceItem: ResistanceItem) => {
         resistanceItem.resistance = await this.resistanceService.getResistance(resistanceItem.resistanceRef);
-      });
-    }
+      })
+    )
   }
 
-
-  private _getStatistiques(aptitude: IAptitude) {
-    if (aptitude.statistiques && aptitude.statistiques.length > 0) {
-      aptitude.statistiques.forEach(async (statistiqueItem: StatistiqueItem) => {
+  private async _getStatistiques(aptitude: IAptitude): Promise<void> {
+    await Promise.all<any>(
+      aptitude?.statistiques.map(async (statistiqueItem) => {
         statistiqueItem.statistique = await this.statistiqueService.getStatistique(statistiqueItem.statistiqueRef);
-      });
-    }
+      })
+    );
   }
 }

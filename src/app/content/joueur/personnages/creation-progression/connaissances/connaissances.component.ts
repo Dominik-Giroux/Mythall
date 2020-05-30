@@ -1,7 +1,7 @@
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import { MatStepper } from '@angular/material/stepper';
 import { PersonnageService, IPersonnage, Choix } from '../../../../../services/personnage.service';
-import { IDon, DonItem } from '../../../../../services/don.service';
+import { IDon, DonItem, DonService } from '../../../../../services/don.service';
 
 @Component({
   selector: 'creation-progression-connaissances',
@@ -10,7 +10,8 @@ import { IDon, DonItem } from '../../../../../services/don.service';
 export class JoueurPersonnageCreationProgressionConnaissancesComponent implements OnInit {
 
   constructor(
-    private personnageService: PersonnageService
+    private personnageService: PersonnageService,
+    private donService: DonService,
   ) { }
 
   @Input() stepper: MatStepper;
@@ -43,7 +44,7 @@ export class JoueurPersonnageCreationProgressionConnaissancesComponent implement
   }
 
   private async _getAvailableConnaissances(): Promise<void> {
-    this.availableConnaissances[this.currentIndex] = await this.personnageService.getAvailableConnaissances(this.personnage);
+    this.availableConnaissances[this.currentIndex] = await this.donService.getAvailableConnaissances(this.personnage);
   }
 
   public setConnaissance(index): void {

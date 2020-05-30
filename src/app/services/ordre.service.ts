@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { AngularFirestore } from '@angular/fire/firestore';
 import { ClasseService, IClasse } from './classe.service';
 import { IAlignement } from './alignement.service';
+import { IPersonnage } from './personnage.service';
 
 export interface IOrdre extends IOrdreDB {
   id: string;
@@ -57,6 +58,53 @@ export class OrdreService {
   public async deleteOrdre(id: string): Promise<boolean> {
     await this.afs.doc<IOrdre>(`ordres/${id}`).delete();
     return true;
+  }
+
+  public async getAvailableOrdres(personnage: IPersonnage): Promise<IOrdre[]> {
+
+    const ordres = await this.getOrdres();
+
+    let list: IOrdre[] = ordres;
+
+    // Filtre selon l'alignement du personnage
+    if (personnage.alignementRef) {
+      list = list.filter(function (ordre) {
+        return ordre.alignementPermisRef.includes(personnage.alignementRef);
+      });
+    }
+
+    // Filtre selon les classes
+    if (personnage.classes) {
+      personnage.classes.forEach(classe => {
+        list = list.filter(function (ordre) {
+          return ordre.classeRef.includes(classe.classeRef);
+        });
+      });
+    }
+
+    return list;
+
+  }
+
+  public async getPersonnageOrdres(personnage: IPersonnage): Promise<IPersonnage> {
+
+    // Retourne seulement la liste des ordres du personnage
+    let count: number = 0;
+    if (!personnage.ordresRef) personnage.ordresRef = [];
+
+    if (personnage.ordresRef && personnage.ordresRef.length > 0) {
+      personnage.ordresRef.forEach(async (ordreRef) => {
+        const ordre = await this.getOrdre(ordreRef);
+        if (!personnage.ordres) personnage.ordres = [];
+        personnage.ordres.push(ordre);
+        count++;
+        if (count == personnage.ordresRef.length) {
+          return personnage;
+        }
+      });
+    } else {
+      return personnage;
+    }
   }
 
   private _saveState(item: IOrdre): IOrdreDB {

@@ -48,6 +48,10 @@ export class EcoleService {
     return true;
   }
 
+  public async getAvailableEcoles(): Promise<IEcole[]> {
+    return await this.getEcoles();
+  }
+
   private _saveState(item: IEcole): IEcoleDB {
     return {
       nom: item.nom,

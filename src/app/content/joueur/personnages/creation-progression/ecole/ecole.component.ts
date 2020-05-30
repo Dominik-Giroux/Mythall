@@ -1,7 +1,7 @@
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import { MatStepper } from '@angular/material/stepper';
 import { PersonnageService, IPersonnage } from '../../../../../services/personnage.service';
-import { IEcole } from '../../../../../services/ecole.service';
+import { IEcole, EcoleService } from '../../../../../services/ecole.service';
 
 @Component({
   selector: 'creation-progression-ecoles',
@@ -10,7 +10,8 @@ import { IEcole } from '../../../../../services/ecole.service';
 export class JoueurPersonnageCreationProgressionEcoleComponent implements OnInit {
 
   constructor(
-    private personnageService: PersonnageService
+    private personnageService: PersonnageService,
+    private ecoleService: EcoleService,
   ) { }
 
   @Input() stepper: MatStepper;
@@ -32,7 +33,7 @@ export class JoueurPersonnageCreationProgressionEcoleComponent implements OnInit
   }
 
   private async _getAvailableEcoles() {
-    this.availableEcoles = await this.personnageService.getAvailableEcoles();
+    this.availableEcoles = await this.ecoleService.getAvailableEcoles();
   }
 
 

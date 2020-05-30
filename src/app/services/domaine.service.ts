@@ -5,7 +5,7 @@ import { DonService, DonItem } from './don.service';
 import { SortService, SortItem } from './sort.service';
 import { ClasseService, IClasse } from './classe.service';
 import { IAlignement } from './alignement.service';
-import { Choix } from './personnage.service';
+import { Choix, IPersonnage } from './personnage.service';
 
 export interface IDomaine extends IDomaineDB {
   id: string;
@@ -82,6 +82,61 @@ export class DomaineService {
     await this.afs.doc<IDomaine>(`domaines/${id}`).delete();
     return true;
   }
+
+  public async getAvailableDomaines(personnage: IPersonnage): Promise<IDomaine[]> {
+
+    let list = await this.getDomaines();
+
+    // Filtre selon l'alignement du personnage
+    if (personnage.alignementRef) {
+      list = list.filter((domaine) => {
+        return domaine.alignementPermisRef.includes(personnage.alignementRef);
+      });
+    }
+
+    // Filtre selon les domaines du personnage
+    if (personnage.domaines && personnage.domaines.length > 0) {
+      personnage.domaines.forEach(domainePersonnage => {
+
+        // Filtre domaine existant
+        list = list.filter((domaine) => {
+          return domaine.id != domainePersonnage.id;
+        });
+
+        // Filtre domaine oposé
+        list = list.filter((domaine) => {
+          return domaine.id != domainePersonnage.domaineContraireRef;
+        });
+
+      });
+    }
+
+    return list;
+
+  }
+
+  public async getPersonnageDomaines(personnage: IPersonnage): Promise<IPersonnage> {
+
+    if (personnage.domainesRef && personnage.domainesRef.length > 0) {
+
+      let count: number = 0;
+
+      personnage.domainesRef.forEach(async (domaineRef) => {
+        const domaine = await this.getDomaine(domaineRef)
+        if (!personnage.domaines) personnage.domaines = [];
+        personnage.domaines.push(domaine);
+        count++;
+        if (count == personnage.domainesRef.length) {
+          return personnage;
+        }
+      });
+
+    } else {
+      return personnage;
+    }
+
+  }
+
 
   private _saveState(item: IDomaine): IDomaineDB {
     if (!item.aptitudes) item.aptitudes = [];

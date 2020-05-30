@@ -5,9 +5,9 @@ import { SortService, SortItem } from './sort.service';
 import { ImmuniteService, IImmunite } from './immunite.service';
 import { ResistanceService, ResistanceItem } from './resistance.service';
 import { StatistiqueService, StatistiqueItem } from './statistique.service';
-import { DonItem } from './don.service';
+import { DonItem, DonService } from './don.service';
 import { IAlignement } from './alignement.service';
-import { Choix } from './personnage.service';
+import { Choix, IPersonnage } from './personnage.service';
 
 export interface IClasse extends IClasseDB {
   id: string;
@@ -66,11 +66,11 @@ export class ClasseAuthorise {
 
 @Injectable()
 export class ClasseService {
-  donService: any;
 
   constructor(
     private afs: AngularFirestore,
     private aptitudeService: AptitudeService,
+    private donService: DonService,
     private sortService: SortService,
     private immuniteService: ImmuniteService,
     private resistanceService: ResistanceService,
@@ -108,13 +108,15 @@ export class ClasseService {
     } as IClasse;
 
     if (full) {
-      this._getMulticlassement(classe);
-      this._getAptitudees(classe);
-      this._getSorts(classe);
-      this._getDons(classe);
-      this._getResistances(classe);
-      this._getStatistiques(classe);
-      this._getImmunites(classe);
+      await Promise.all([
+        this._getMulticlassement(classe),
+        this._getAptitudes(classe),
+        this._getSorts(classe),
+        this._getDons(classe),
+        this._getResistances(classe),
+        this._getStatistiques(classe),
+        this._getImmunites(classe)
+      ]);
     }
 
     return classe;
@@ -133,6 +135,101 @@ export class ClasseService {
   public async deleteClasse(id: string): Promise<boolean> {
     await this.afs.doc<IClasse>(`classes/${id}`).delete();
     return true;
+  }
+
+  public async getAvailableClasses(personnage: IPersonnage): Promise<IClasse[]> {
+
+    let list = await this.getClasses();
+
+    // Filtre selon la race
+    if (personnage.race) {
+      list = list.filter((classe) => {
+        return personnage.race.classesDisponibleRef.includes(classe.id);
+      });
+    }
+
+    // Filtre selon les classes
+    if (personnage.classes) {
+      personnage.classes.forEach(classePerso => {
+
+        // Multiclassement
+        list = list.filter((classe) => {
+          return classePerso.classe.multiclassementRef.includes(classe.id);
+        });
+
+        // Ajoute la classe actuelle (Filtré au multiclassement);
+        list.push(classePerso.classe);
+
+        // Alignement Permis
+        if (personnage.alignementRef) {
+          list = list.filter((classe) => {
+            return classePerso.classe.alignementPermisRef.includes(personnage.alignementRef);
+          });
+        }
+
+      });
+    }
+
+    // Ordres
+    if (personnage.ordres && personnage.ordres.length > 0) {
+      personnage.ordres.forEach(ordre => {
+        list = list.filter((classe) => {
+          return ordre.classeRef.includes(classe.id);
+        });
+      })
+    }
+
+    // Domaines
+    if (personnage.domaines && personnage.domaines.length > 0) {
+      personnage.domaines.forEach(domaine => {
+        list = list.filter((classe) => {
+          return domaine.multiclassementRef.includes(classe.id);
+        });
+      })
+    }
+
+    // Ajoute les classes existante
+    if (personnage.classes) {
+
+      // Retire les autres classes si déjà 3 existantes
+      if (personnage.classes.length >= 3) {
+        list = [];
+      }
+
+      // Ajoute Chaques classe existante
+      personnage.classes.forEach(classePerso => {
+        list.push(classePerso.classe);
+      });
+
+      // Filtre les doubles
+      list = list.filter((obj, pos, arr) => {
+        return arr.map(mapObj => mapObj['id']).indexOf(obj['id']) === pos;
+      });
+
+    }
+
+    // Trie en Ordre Alphabetic
+    list = list.sort((a, b) => {
+      if (a.nom > b.nom) {
+        return 1;
+      }
+      if (a.nom < b.nom) {
+        return -1;
+      }
+      return 0;
+    });
+
+    return list;
+
+  }
+
+  public async getPersonnageClasses(personnage: IPersonnage): Promise<IPersonnage> {
+    await Promise.all(
+      personnage.classes.map(async (classeItem) => {
+        classeItem.classe = await this.getClasse(classeItem.classeRef, true);
+      })
+    );
+    return personnage;
   }
 
   private _saveState(item: IClasse): IClasseDB {
@@ -192,8 +289,6 @@ export class ClasseService {
     };
   }
 
-  //#region Private Methods
-
   private _getMulticlassement(classe: IClasse): void {
     if (classe.multiclassementRef) {
       classe.multiclassementRef.forEach(async (classeRef) => {
@@ -204,53 +299,53 @@ export class ClasseService {
     }
   }
 
-  private _getAptitudees(classe: IClasse): void {
-    if (classe.aptitudes && classe.aptitudes.length > 0) {
-      classe.aptitudes.forEach(async (aptitudeItem: AptitudeItem) => {
+  private async _getAptitudes(classe: IClasse): Promise<void> {
+    await Promise.all(
+      classe?.aptitudes.map(async (aptitudeItem: AptitudeItem) => {
         aptitudeItem.aptitude = await this.aptitudeService.getAptitude(aptitudeItem.aptitudeRef);
-      });
-    }
+      })
+    )
   }
 
-  private _getDons(classe: IClasse): void {
-    if (classe.dons && classe.dons.length > 0) {
-      classe.dons.forEach(async (donItem: DonItem) => {
+  private async _getDons(classe: IClasse): Promise<void> {
+    await Promise.all(
+      classe.dons.map(async (donItem: DonItem) => {
         donItem.don = await this.donService.getDon(donItem.donRef);
-      });
-    }
+      })
+    )
   }
 
-  private _getSorts(classe: IClasse): void {
-    if (classe.sorts && classe.sorts.length > 0) {
-      classe.sorts.forEach(async (sortItem: SortItem) => {
+  private async _getSorts(classe: IClasse): Promise<void> {
+    await Promise.all(
+      classe.sorts.map(async (sortItem: SortItem) => {
         sortItem.sort = await this.sortService.getSort(sortItem.sortRef);
-      });
-    }
+      })
+    );
   }
 
-  private _getResistances(classe: IClasse): void {
-    if (classe.resistances && classe.resistances.length > 0) {
-      classe.resistances.forEach(async (resistanceItem: ResistanceItem) => {
+  private async _getResistances(classe: IClasse): Promise<void> {
+    await Promise.all(
+      classe.resistances.map(async (resistanceItem: ResistanceItem) => {
         resistanceItem.resistance = await this.resistanceService.getResistance(resistanceItem.resistanceRef);
-      });
-    }
+      })
+    );
   }
 
-  private _getStatistiques(classe: IClasse): void {
-    if (classe.statistiques && classe.statistiques.length > 0) {
-      classe.statistiques.forEach(async (statistiqueItem: StatistiqueItem) => {
+  private async _getStatistiques(classe: IClasse): Promise<void> {
+    await Promise.all(
+      classe.statistiques.map(async (statistiqueItem: StatistiqueItem) => {
         statistiqueItem.statistique = await this.statistiqueService.getStatistique(statistiqueItem.statistiqueRef);
-      });
-    }
+      })
+    );
   }
 
-  private _getImmunites(classe: IClasse): void {
-    if (classe.immunitesRef) {
-      classe.immunitesRef.forEach(async (immuniteRef) => {
+  private async _getImmunites(classe: IClasse): Promise<void> {
+    await Promise.all(
+      classe.immunitesRef.map(async (immuniteRef) => {
         if (!classe.immunites) classe.immunites = [];
         classe.immunites.push(await this.immuniteService.getImmunite(immuniteRef));
-      });
-    }
+      })
+    )
   }
 
 }

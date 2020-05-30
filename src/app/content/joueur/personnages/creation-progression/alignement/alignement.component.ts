@@ -1,7 +1,7 @@
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import { MatStepper } from '@angular/material/stepper';
 import { PersonnageService, IPersonnage } from '../../../../../services/personnage.service';
-import { IAlignement } from '../../../../../services/alignement.service';
+import { IAlignement, AlignementService } from '../../../../../services/alignement.service';
 
 @Component({
   selector: 'creation-progression-alignements',
@@ -10,7 +10,8 @@ import { IAlignement } from '../../../../../services/alignement.service';
 export class JoueurPersonnageCreationProgressionAlignementComponent implements OnInit {
 
   constructor(
-    private personnageService: PersonnageService
+    private personnageService: PersonnageService,
+    private alignementService: AlignementService,
   ) { }
 
   @Input() stepper: MatStepper;
@@ -32,7 +33,7 @@ export class JoueurPersonnageCreationProgressionAlignementComponent implements O
   }
 
   private async _getAvailableAlignements(): Promise<void> {
-    this.availableAlignements = await this.personnageService.getAvailableAlignements(this.personnage);
+    this.availableAlignements = await this.alignementService.getAvailableAlignements(this.personnage);
   }
 
 

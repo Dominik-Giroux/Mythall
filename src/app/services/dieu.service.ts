@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { AngularFirestore } from '@angular/fire/firestore';
 import { IAlignement } from "../services/alignement.service";
 import { IDomaine } from './domaine.service';
+import { IPersonnage } from './personnage.service';
 
 export interface IDieu extends IDieuDB {
   id: string;
@@ -60,6 +61,38 @@ export class DieuService {
   public async deleteDieu(id: string): Promise<boolean> {
     await this.afs.doc<IDieu>(`dieux/${id}`).delete();
     return true;
+  }
+
+  public async getAvailableDieux(personnage: IPersonnage): Promise<IDieu[]> {
+
+    let list = await this.getDieux();
+
+    // Filtre selon l'alignement du personnage
+    if (personnage.alignementRef) {
+      list = list.filter(function (dieu) {
+        return dieu.alignementPermisRef.includes(personnage.alignementRef);
+      });
+    }
+
+    // Trie en Ordre Alphabetic
+    list = list.sort((a, b) => {
+      if (a.nom > b.nom) {
+        return 1;
+      }
+      if (a.nom < b.nom) {
+        return -1;
+      }
+      return 0;
+    });
+
+    return list;
+  }
+
+  public async getPersonnageDieu(personnage: IPersonnage): Promise<IPersonnage> {
+    if (personnage.dieuRef) {
+      personnage.dieu = await this.getDieu(personnage.dieuRef);
+    }
+    return personnage;
   }
 
   private _saveState(item: IDieu): IDieuDB {

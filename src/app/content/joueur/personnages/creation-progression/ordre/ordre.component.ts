@@ -1,7 +1,7 @@
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import { MatStepper } from '@angular/material/stepper';
 import { PersonnageService, IPersonnage } from '../../../../../services/personnage.service';
-import { IOrdre } from '../../../../../services/ordre.service';
+import { IOrdre, OrdreService } from '../../../../../services/ordre.service';
 
 @Component({
   selector: 'creation-progression-ordres',
@@ -10,7 +10,8 @@ import { IOrdre } from '../../../../../services/ordre.service';
 export class JoueurPersonnageCreationProgressionOrdreComponent implements OnInit {
 
   constructor(
-    private personnageService: PersonnageService
+    private personnageService: PersonnageService,
+    private ordreService: OrdreService
   ) { }
 
   @Input() stepper: MatStepper;
@@ -32,7 +33,7 @@ export class JoueurPersonnageCreationProgressionOrdreComponent implements OnInit
   }
 
   private async _getAvailableOrdres(): Promise<void> {
-    this.availableOrdres = await this.personnageService.getAvailableOrdres(this.personnage);
+    this.availableOrdres = await this.ordreService.getAvailableOrdres(this.personnage);
   }
 
   public setOrdre(): void {

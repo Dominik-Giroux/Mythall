@@ -1,7 +1,7 @@
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import { MatStepper } from '@angular/material/stepper';
 import { PersonnageService, IPersonnage } from '../../../../../services/personnage.service';
-import { IDieu } from '../../../../../services/dieu.service';
+import { IDieu, DieuService } from '../../../../../services/dieu.service';
 
 @Component({
   selector: 'creation-progression-dieus',
@@ -10,7 +10,8 @@ import { IDieu } from '../../../../../services/dieu.service';
 export class JoueurPersonnageCreationProgressionDieuComponent implements OnInit {
 
   constructor(
-    private personnageService: PersonnageService
+    private personnageService: PersonnageService,
+    private dieuService: DieuService
   ) { }
 
   @Input() stepper: MatStepper;
@@ -32,7 +33,7 @@ export class JoueurPersonnageCreationProgressionDieuComponent implements OnInit 
   }
 
   private async _getAvailableDieux(): Promise<void> {
-    this.availableDieus = await this.personnageService.getAvailableDieux(this.personnage);
+    this.availableDieus = await this.dieuService.getAvailableDieux(this.personnage);
   }
 
   public setDieu(): void {

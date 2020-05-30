@@ -3,6 +3,7 @@ import { AngularFirestore } from '@angular/fire/firestore';
 import { AptitudeService, AptitudeItem } from './aptitude.service';
 import { DonService, DonItem } from './don.service';
 import { SortService, SortItem } from './sort.service';
+import { IPersonnage } from './personnage.service';
 
 export interface IEsprit extends IEspritDB {
   id: string;
@@ -63,6 +64,18 @@ export class EspritService {
   public async deleteEsprit(id: string): Promise<boolean> {
     await this.afs.doc<IEsprit>(`esprits/${id}`).delete();
     return true;
+  }
+
+  public async getAvailableEsprits(): Promise<IEsprit[]> {
+    return await this.getEsprits();
+  }
+
+  public async getPersonnageEsprit(personnage: IPersonnage): Promise<IPersonnage> {
+    if (personnage.espritRef) {
+      const response = await this.getEsprit(personnage.espritRef);
+      personnage.esprit = response;
+    }
+    return personnage;
   }
 
   private _saveState(item: IEsprit): IEspritDB {

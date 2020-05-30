@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { AngularFirestore } from '@angular/fire/firestore';
+import { IPersonnage } from '../personnage.service';
 
 export interface IRoles {
   joueur?: boolean;
@@ -59,6 +60,11 @@ export class UserService {
   public async deleteUser(id: string): Promise<boolean> {
     await this.afs.doc<IUser>(`users/${id}`).delete();
     return true;
+  }
+
+  public async getPersonnageUser(personnage: IPersonnage): Promise<IPersonnage> {
+    personnage.user = await this.getUser(personnage.userRef)
+    return personnage;
   }
 
   private _saveState(item: IUser): IUserDB {

@@ -1,7 +1,7 @@
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import { MatStepper } from '@angular/material/stepper';
 import { PersonnageService, IPersonnage, Choix } from '../../../../../services/personnage.service';
-import { IDomaine } from '../../../../../services/domaine.service';
+import { IDomaine, DomaineService } from '../../../../../services/domaine.service';
 
 @Component({
   selector: 'creation-progression-domaines',
@@ -10,7 +10,8 @@ import { IDomaine } from '../../../../../services/domaine.service';
 export class JoueurPersonnageCreationProgressionDomainesComponent implements OnInit {
 
   constructor(
-    private personnageService: PersonnageService
+    private personnageService: PersonnageService,
+    private domaineService: DomaineService
   ) { }
 
   @Input() stepper: MatStepper;
@@ -43,7 +44,7 @@ export class JoueurPersonnageCreationProgressionDomainesComponent implements OnI
   }
 
   private async _getAvailableDomaines(): Promise<void> {
-    this.availableDomaines[this.currentIndex] = await this.personnageService.getAvailableDomaines(this.personnage);
+    this.availableDomaines[this.currentIndex] = await this.domaineService.getAvailableDomaines(this.personnage);
   }
 
   public setDomaine(index): void {

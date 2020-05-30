@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { AngularFirestore } from '@angular/fire/firestore';
 import { StatistiqueService, IStatistique } from './statistique.service';
 import { IDon } from './don.service';
+import { IPersonnage } from './personnage.service';
 
 export interface IFourberie extends IFourberieDB {
   id: string;
@@ -74,6 +75,134 @@ export class FourberieService {
   public async deleteFourberie(id: string): Promise<boolean> {
     await this.afs.doc<IFourberie>(`fourberies/${id}`).delete();
     return true;
+  }
+
+  public async getAvailableFourberies(personnage: IPersonnage): Promise<IFourberie[]> {
+
+    const fourberies = await this.getFourberies();
+
+    let list: IFourberie[] = fourberies;
+
+    // Filtre les fourberies déjà existant
+    if (personnage.fourberies && personnage.fourberies.length > 0) {
+      personnage.fourberies.forEach(fourberiesPerso => {
+
+        list = list.filter(fourberie => {
+          return fourberie.id != fourberiesPerso.fourberieRef;
+        })
+
+      });
+    }
+
+    // Filtre les prérequis de fourberie
+    if (personnage.fourberies) {
+
+      let result: IFourberie[] = [];
+
+      list.forEach(fourberie => {
+
+        let add: boolean = true;
+
+        // No requirements
+        if (fourberie.fourberiesRequisRef && fourberie.fourberiesRequisRef.length > 0) {
+
+          // Make sure all requirements is filled
+          fourberie.fourberiesRequisRef.forEach(fourberieReqRef => {
+
+            let found: boolean = false;
+
+            personnage.fourberies.forEach(fourberiePerso => {
+
+              if (fourberieReqRef == fourberiePerso.fourberieRef) {
+                found = true;
+              }
+
+            });
+
+            if (!found) {
+              add = false;
+            }
+
+          });
+        }
+
+        if (add) {
+          result.push(fourberie);
+        }
+
+      });
+
+      list = result;
+
+    }
+
+    // Trie en Ordre Alphabetic
+    list = list.sort((a, b) => {
+      if (a.nom > b.nom) {
+        return 1;
+      }
+      if (a.nom < b.nom) {
+        return -1;
+      }
+      return 0;
+    });
+
+    return list;
+
+  }
+
+  public async getPersonnageFourberies(personnage: IPersonnage): Promise<IPersonnage> {
+
+    let count: number = 0;
+    if (!personnage.fourberies) personnage.fourberies = [];
+
+    if (personnage.fourberies && personnage.fourberies.length > 0) {
+
+      personnage.fourberies.forEach(async (fourberieItem) => {
+
+        if (!fourberieItem.fourberie) { //Avoid fetching Fourberie if already fetch
+
+          fourberieItem.fourberie = await this.getFourberie(fourberieItem.fourberieRef);
+          count++;
+
+          if (count == personnage.fourberies.length) {
+
+            // Filter Duplicates
+            personnage.fourberies = personnage.fourberies.filter((fourberie, index, self) =>
+              index === self.findIndex((d) => (
+                d.fourberieRef === fourberie.fourberieRef
+              ))
+            )
+
+            return personnage;
+
+          }
+
+        } else {
+
+          count++;
+
+          if (count == personnage.fourberies.length) {
+
+            // Filter Duplicates
+            personnage.fourberies = personnage.fourberies.filter((fourberie, index, self) =>
+              index === self.findIndex((d) => (
+                d.fourberieRef === fourberie.fourberieRef
+              ))
+            )
+
+            return personnage;
+
+          }
+
+        }
+
+      });
+
+    } else {
+      return personnage;
+    }
+
   }
 
   private _saveState(fourberie: IFourberie): IFourberieDB {

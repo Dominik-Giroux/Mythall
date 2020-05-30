@@ -53,7 +53,7 @@ export class JoueurPersonnageCreationProgressionSortsDomaineComponent implements
   }
 
   // getAvailableDons() {
-  //     this.personnageService.getAvailableDons(this.personnage).then(response => {
+  //     this.donService.getAvailableDons(this.personnage).then(response => {
   //         this.availableDons[this.currentIndex] = response;
   //     });
   // }

@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { AngularFirestore } from '@angular/fire/firestore';
+import { IPersonnage } from './personnage.service';
 
 export interface IImmunite extends IImmuniteDB {
   id: string;
@@ -46,6 +47,46 @@ export class ImmuniteService {
   public async deleteImmunite(id: string): Promise<boolean> {
     await this.afs.doc<IImmunite>(`immunites/${id}`).delete();
     return true;
+  }
+
+  public async getPersonnageImmunites(personnage: IPersonnage): Promise<IPersonnage> {
+
+    if (!personnage.immunites) personnage.immunites = [];
+
+    //Race Immunites
+    if (personnage.race.immunites) {
+      personnage.immunites = [...personnage.immunites, ...personnage.race.immunites];
+    }
+
+    //Classes Immunites
+    if (personnage.classes && personnage.classes.length > 0) {
+      personnage.classes.forEach(classeItem => {
+        if (classeItem.classe.immunites) {
+          personnage.immunites = [...personnage.immunites, ...classeItem.classe.immunites];
+        }
+      })
+    }
+
+    //Aptitudes Immunites
+    if (personnage.aptitudes) {
+      personnage.aptitudes.forEach(aptitudeItem => {
+        if (aptitudeItem.aptitude && aptitudeItem.aptitude.immunites) {
+          personnage.immunites = [...personnage.immunites, ...aptitudeItem.aptitude.immunites];
+        }
+      })
+    }
+
+    //Dons Immunites
+    if (personnage.dons) {
+      personnage.dons.forEach(donItem => {
+        if (donItem.don && donItem.don.immunites) {
+          personnage.immunites = [...personnage.immunites, ...donItem.don.immunites];
+        }
+      })
+    }
+
+    return personnage;
+
   }
 
   private _saveState(item: IImmunite): IImmuniteDB {

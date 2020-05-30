@@ -1,7 +1,7 @@
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import { MatStepper } from '@angular/material/stepper';
 import { PersonnageService, IPersonnage } from '../../../../../services/personnage.service';
-import { IEsprit } from '../../../../../services/esprit.service';
+import { IEsprit, EspritService } from '../../../../../services/esprit.service';
 
 @Component({
   selector: 'creation-progression-esprits',
@@ -10,7 +10,8 @@ import { IEsprit } from '../../../../../services/esprit.service';
 export class JoueurPersonnageCreationProgressionEspritComponent implements OnInit {
 
   constructor(
-    private personnageService: PersonnageService
+    private personnageService: PersonnageService,
+    private espritService: EspritService
   ) { }
 
   @Input() stepper: MatStepper;
@@ -32,7 +33,7 @@ export class JoueurPersonnageCreationProgressionEspritComponent implements OnIni
   }
 
   private async _getAvailableEsprits(): Promise<void> {
-    this.availableEsprits = await this.personnageService.getAvailableEsprits();
+    this.availableEsprits = await this.espritService.getAvailableEsprits();
   }
 
   public setEsprit(): void {

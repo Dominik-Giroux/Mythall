@@ -1,7 +1,7 @@
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import { MatStepper } from '@angular/material/stepper';
 import { PersonnageService, IPersonnage, Choix } from '../../../../../services/personnage.service';
-import { IFourberie, FourberieItem } from '../../../../../services/fourberie.service';
+import { IFourberie, FourberieService, FourberieItem } from '../../../../../services/fourberie.service';
 
 @Component({
   selector: 'creation-progression-fourberies',
@@ -10,7 +10,8 @@ import { IFourberie, FourberieItem } from '../../../../../services/fourberie.ser
 export class JoueurPersonnageCreationProgressionFourberiesComponent implements OnInit {
 
   constructor(
-    private personnageService: PersonnageService
+    private personnageService: PersonnageService,
+    private fourberieService: FourberieService
   ) { }
 
   @Input() stepper: MatStepper;
@@ -45,7 +46,7 @@ export class JoueurPersonnageCreationProgressionFourberiesComponent implements O
   }
 
   private async _getAvailableFourberies(): Promise<void> {
-    this.availableFourberies[this.currentIndex] = await this.personnageService.getAvailableFourberies(this.personnage);
+    this.availableFourberies[this.currentIndex] = await this.fourberieService.getAvailableFourberies(this.personnage);
   }
 
   setFourberie(index) {

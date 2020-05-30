@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { AngularFirestore } from '@angular/fire/firestore';
+import { IPersonnage } from './personnage.service';
 
 export interface IAlignement extends IAlignementDB {
   id: string;
@@ -52,6 +53,37 @@ export class AlignementService {
     return {
       nom: item.nom,
     };
+  }
+
+  public async getAvailableAlignements(personnage: IPersonnage): Promise<IAlignement[]> {
+
+    let alignements = await this.getAlignements();
+
+    // Filtre selon la race
+    if (personnage.race) {
+      alignements = alignements.filter((alignement) => {
+        return personnage.race.alignementPermisRef.includes(alignement.id);
+      });
+    }
+
+    // Filtre selon les classes
+    if (personnage.classes) {
+      personnage.classes.forEach(classe => {
+        alignements = alignements.filter((alignement) => {
+          return classe.classe.alignementPermisRef.includes(alignement.id);
+        });
+      });
+    }
+
+    return alignements;
+
+  }
+
+  public async getPersonnageAlignement(personnage: IPersonnage): Promise<IPersonnage> {
+    if (personnage.alignementRef) {
+      personnage.alignement = await this.getAlignement(personnage.alignementRef);
+    }
+    return personnage;
   }
 
 }

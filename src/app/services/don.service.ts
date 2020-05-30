@@ -5,6 +5,7 @@ import { ResistanceService, ResistanceItem } from './resistance.service';
 import { StatistiqueService, StatistiqueItem, IStatistique } from './statistique.service';
 import { ClasseAuthorise } from './classe.service';
 import { IRace } from './race.service';
+import { IPersonnage } from './personnage.service';
 
 export interface IDon extends IDonDB {
   id: string;
@@ -110,6 +111,377 @@ export class DonService {
   public async deleteDon(id: string): Promise<boolean> {
     await this.afs.doc<IDon>(`dons/${id}`).delete();
     return true;
+  }
+
+  public async getAvailableDons(personnage: IPersonnage): Promise<IDon[]> {
+
+    const dons = await this.getDons();
+
+    let list: IDon[] = dons;
+
+    // Filtre les dons déjà existant
+    if (personnage.dons && personnage.dons.length > 0) {
+      personnage.dons.forEach(donPerso => {
+
+        list = list.filter(don => {
+          return don.id != donPerso.donRef;
+        })
+
+      });
+    }
+
+    // Filtre les Race Authorisé
+    if (personnage.raceRef) {
+      list = list.filter(function (don) {
+        return don.racesAutoriseRef.includes(personnage.raceRef);
+      });
+    }
+
+    // Filtre les classes authorisé
+    if (personnage.classes) {
+
+      let result: IDon[] = [];
+
+      list.forEach(don => {
+        don.classesAutorise.forEach(ca => {
+          personnage.classes.forEach(classePerso => {
+            if (classePerso.classeRef == ca.classeRef && classePerso.niveau >= ca.niveau) {
+              if (!result.find(r => r.id == don.id)) {
+                result.push(don);
+              }
+            }
+          });
+        });
+      });
+
+      list = result;
+
+    }
+
+    // Filtre les prérequis de dons
+    if (personnage.dons) {
+
+      let result: IDon[] = [];
+
+      list.forEach(don => {
+
+        let add: boolean = true;
+
+        // No requirements
+        if (don.donsRequisRef && don.donsRequisRef.length > 0) {
+
+          // Make sure all requirements is filled
+          don.donsRequisRef.forEach(donReqRef => {
+
+            let found: boolean = false;
+
+            personnage.dons.forEach(donPerso => {
+
+              if (donReqRef == donPerso.donRef) {
+                found = true;
+              }
+
+            });
+
+            if (!found) {
+              add = false;
+            }
+
+          });
+        }
+
+        if (add) {
+          if (!result.find(r => r.id == don.id)) {
+            result.push(don);
+          }
+          result.push(don);
+        }
+
+      });
+
+      list = result;
+
+    }
+
+    // Filtre les restrictions de niveaux
+    if (personnage.niveauReel) {
+
+      // Filtre Niveau Max D'Obtention
+      list = list.filter(don => {
+        return don.niveauMaxObtention <= personnage.niveauReel
+      });
+
+      // Filtre Niveau Requis
+      list = list.filter(don => {
+        return don.niveauRequis <= personnage.niveauReel;
+      });
+
+    }
+
+    // Trie en Ordre Alphabetic
+    list = list.sort((a, b) => {
+      if (a.nom > b.nom) {
+        return 1;
+      }
+      if (a.nom < b.nom) {
+        return -1;
+      }
+      return 0;
+    });
+
+    // Filter Duplicates
+    list = list.filter((don, index, self) =>
+      index === self.findIndex((d) => (
+        d.id === don.id
+      ))
+    );
+
+    return list;
+
+  }
+
+  public async getAvailableConnaissances(personnage: IPersonnage): Promise<IDon[]> {
+
+    const dons = await this.getDons('Connaissance');
+
+    let list: IDon[] = dons;
+
+    // Filtre les dons déjà existant
+    if (personnage.dons && personnage.dons.length > 0) {
+      personnage.dons.forEach(donPerso => {
+
+        list = list.filter(don => {
+          return don.id != donPerso.donRef;
+        })
+
+      });
+    }
+
+    // Filtre les prérequis de dons
+    if (personnage.dons) {
+
+      let result: IDon[] = [];
+
+      list.forEach(don => {
+
+        let add: boolean = true;
+
+        // No requirements
+        if (don.donsRequisRef && don.donsRequisRef.length > 0) {
+
+          // Make sure all requirements is filled
+          don.donsRequisRef.forEach(donReqRef => {
+
+            let found: boolean = false;
+
+            personnage.dons.forEach(donPerso => {
+
+              if (donReqRef == donPerso.donRef) {
+                found = true;
+              }
+
+            });
+
+            if (!found) {
+              add = false;
+            }
+
+          });
+        }
+
+        if (add) {
+          result.push(don);
+        }
+
+      });
+
+      list = result;
+
+    }
+
+    // Filtre les restrictions de niveaux
+    if (personnage.niveauReel) {
+
+      // Filtre Niveau Max D'Obtention
+      list = list.filter(don => {
+        return don.niveauMaxObtention <= personnage.niveauReel
+      });
+
+      // Filtre Niveau Requis
+      list = list.filter(don => {
+        return don.niveauRequis <= personnage.niveauReel;
+      });
+
+    }
+
+    // Trie en Ordre Alphabetic
+    list = list.sort((a, b) => {
+      if (a.nom > b.nom) {
+        return 1;
+      }
+      if (a.nom < b.nom) {
+        return -1;
+      }
+      return 0;
+    });
+
+    return list;
+
+  }
+
+  public async getPersonnageDons(personnage: IPersonnage): Promise<IPersonnage> {
+
+    // Dons Racial
+    if (personnage.race && personnage.race.donsRacialRef && personnage.race.donsRacialRef.length > 0) {
+      personnage.race.donsRacialRef.forEach(donRef => {
+        let donItem: DonItem = new DonItem();
+        donItem.donRef = donRef;
+        personnage.dons.push(donItem);
+      })
+    }
+
+    // Dons Classes
+    if (personnage.classes && personnage.classes.length > 0) {
+      personnage.classes.forEach(classeItem => {
+        if (classeItem.classe.dons && classeItem.classe.dons.length > 0) {
+          classeItem.classe.dons.forEach(donItem => {
+            if (classeItem.niveau >= donItem.niveauObtention) {
+              personnage.dons.push(donItem);
+            }
+          })
+        }
+      });
+    }
+
+    // Dons Domaines
+    if (personnage.domaines && personnage.domaines.length > 0) {
+      personnage.domaines.forEach(domaine => {
+        if (domaine.dons && domaine.dons.length > 0) {
+          domaine.dons.forEach(donItem => {
+            personnage.classes.forEach(classe => {
+              if (classe.classeRef == 'fNqknNgq0QmHzUaYEvEd' && classe.niveau >= donItem.niveauObtention) {
+                personnage.dons.push(donItem);
+              }
+            })
+          })
+        }
+      });
+    }
+
+    // Dons Esprit
+    if (personnage.esprit && personnage.esprit.dons && personnage.esprit.dons.length > 0) {
+      personnage.esprit.dons.forEach(donItem => {
+        personnage.classes.forEach(classe => {
+          if (classe.classeRef == 'wW48swrqmr77awfyADMX' && classe.niveau >= donItem.niveauObtention) {
+            personnage.dons.push(donItem);
+          }
+        })
+      })
+    };
+
+    // Dons Fourberies (Équivalence)
+    if (personnage.fourberies) {
+      personnage.fourberies.forEach(fourberie => {
+        if (fourberie.fourberie && fourberie.fourberie.donsEquivalentRef && fourberie.fourberie.donsEquivalentRef.length > 0) {
+          fourberie.fourberie.donsEquivalentRef.forEach(aptDonRef => {
+            let donItem = new DonItem();
+            donItem.niveauObtention = fourberie.niveauObtention;
+            donItem.donRef = aptDonRef;
+            personnage.dons.push(donItem);
+          });
+        }
+      })
+    }
+
+    // Dons Aptitudes (Équivalence)
+    if (personnage.aptitudes) {
+      personnage.aptitudes.forEach(aptitude => {
+        if (aptitude.aptitude && aptitude.aptitude.donsEquivalentRef) {
+          aptitude.aptitude.donsEquivalentRef.forEach(aptDonRef => {
+            let donItem = new DonItem();
+            donItem.niveauObtention = aptitude.niveauObtention;
+            donItem.donRef = aptDonRef;
+            personnage.dons.push(donItem);
+          });
+        }
+      })
+    }
+
+    // Remplis la liste de dons complète
+    let count: number = 0;
+    if (!personnage.dons) personnage.dons = [];
+
+    if (personnage.dons && personnage.dons.length > 0) {
+
+      personnage.dons.forEach(async (donItem) => {
+
+        if (!donItem.don) { //Avoid fetching Don if already fetch
+          const don = await this.getDon(donItem.donRef, false, true);
+          donItem.don = don;
+          count++;
+          if (count == personnage.dons.length) {
+
+            // Filter duplicated
+            personnage.dons = personnage.dons.filter((don, index, self) =>
+              index === self.findIndex((d) => (
+                d.donRef === don.donRef
+              ))
+            )
+
+            return personnage;
+          }
+
+        } else {
+          count++;
+          if (count == personnage.dons.length) {
+
+            // Filter duplicated
+            personnage.dons = personnage.dons.filter((don, index, self) =>
+              index === self.findIndex((d) => (
+                d.donRef === don.donRef
+              ))
+            )
+
+            return personnage;
+          }
+        }
+
+      });
+
+    } else {
+      return personnage;
+    }
+
+  }
+
+  public async getPersonnageDonsNiveauEffectif(personnage: IPersonnage): Promise<IPersonnage> {
+
+    if (personnage.dons && personnage.statistiques) {
+      personnage.dons.forEach(donItem => {
+
+        if (donItem.don.afficherNiveau) {
+
+          //Niveau Effectif du Personnage et Niveau d'Obtention
+          donItem.niveauEffectif = personnage.niveauEffectif - (donItem.niveauObtention - 1);
+
+          //Modificateur de Statistique
+          if (donItem.don.modificateurs && donItem.don.modificateurs.length > 0) {
+            donItem.don.modificateurs.forEach(modificateur => {
+              personnage.statistiques.forEach(statistiqueValue => {
+                if (statistiqueValue.statistique.id == modificateur.id) {
+                  donItem.niveauEffectif += statistiqueValue.valeur;
+                }
+              });
+            })
+          }
+
+        }
+
+      })
+    }
+
+    // Remplis la liste de dons complète
+    return personnage;
   }
 
   private _saveState(item: IDon): IDonDB {

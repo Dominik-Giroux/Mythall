@@ -1,7 +1,7 @@
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import { MatStepper } from '@angular/material/stepper';
 import { PersonnageService, IPersonnage, Choix } from '../../../../../services/personnage.service';
-import { IDon, DonItem } from '../../../../../services/don.service';
+import { IDon, DonItem, DonService } from '../../../../../services/don.service';
 
 @Component({
   selector: 'creation-progression-dons',
@@ -10,7 +10,8 @@ import { IDon, DonItem } from '../../../../../services/don.service';
 export class JoueurPersonnageCreationProgressionDonsComponent implements OnInit {
 
   constructor(
-    private personnageService: PersonnageService
+    private personnageService: PersonnageService,
+    private donService: DonService,
   ) { }
 
   @Input() stepper: MatStepper;
@@ -45,7 +46,7 @@ export class JoueurPersonnageCreationProgressionDonsComponent implements OnInit 
   }
 
   private async _getAvailableDons(): Promise<void> {
-    this.availableDons[this.currentIndex] = await this.personnageService.getAvailableDons(this.personnage);
+    this.availableDons[this.currentIndex] = await this.donService.getAvailableDons(this.personnage);
   }
 
   public setDon(index): void {

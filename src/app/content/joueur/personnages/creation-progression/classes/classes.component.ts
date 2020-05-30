@@ -1,7 +1,7 @@
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import { MatStepper } from '@angular/material/stepper';
 import { PersonnageService, IPersonnage } from '../../../../../services/personnage.service';
-import { IClasse, ClasseItem } from '../../../../../services/classe.service';
+import { IClasse, ClasseItem, ClasseService } from '../../../../../services/classe.service';
 
 @Component({
   selector: 'creation-progression-classes',
@@ -10,7 +10,8 @@ import { IClasse, ClasseItem } from '../../../../../services/classe.service';
 export class JoueurPersonnageCreationProgressionClassesComponent implements OnInit {
 
   constructor(
-    private personnageService: PersonnageService
+    private personnageService: PersonnageService,
+    private classeService: ClasseService,
   ) { }
 
   @Input() stepper: MatStepper;
@@ -35,7 +36,7 @@ export class JoueurPersonnageCreationProgressionClassesComponent implements OnIn
   }
 
   private async _getAvailableClasses(): Promise<void> {
-    this.availableClasses = await this.personnageService.getAvailableClasses(this.personnage);
+    this.availableClasses = await this.classeService.getAvailableClasses(this.personnage);
   }
 
   private _levelClasse(): void {

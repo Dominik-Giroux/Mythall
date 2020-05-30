@@ -1,7 +1,7 @@
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import { MatStepper } from '@angular/material/stepper';
 import { PersonnageService, IPersonnage, Choix } from '../../../../../services/personnage.service';
-import { ISort, SortItem } from '../../../../../services/sort.service';
+import { ISort, SortItem, SortService } from '../../../../../services/sort.service';
 
 @Component({
   selector: 'creation-progression-sorts',
@@ -10,7 +10,8 @@ import { ISort, SortItem } from '../../../../../services/sort.service';
 export class JoueurPersonnageCreationProgressionSortsComponent implements OnInit {
 
   constructor(
-    private personnageService: PersonnageService
+    private personnageService: PersonnageService,
+    private sortService: SortService
   ) { }
 
   @Input() stepper: MatStepper;
@@ -45,7 +46,7 @@ export class JoueurPersonnageCreationProgressionSortsComponent implements OnInit
   }
 
   private async _getAvailableSorts(): Promise<void> {
-    this.availableSorts[this.currentIndex] = await this.personnageService.getAvailableSorts(this.personnage);
+    this.availableSorts[this.currentIndex] = await this.sortService.getAvailableSorts(this.personnage);
   }
 
   setSort(index) {

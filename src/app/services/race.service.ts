@@ -8,6 +8,7 @@ import { IDon, DonService } from './don.service';
 import { ClasseService, IClasse } from './classe.service';
 import { IAlignement } from './alignement.service';
 import { IAptitude } from './aptitude.service';
+import { IPersonnage } from './personnage.service';
 
 export interface IRace extends IRaceDB {
   id: string;
@@ -100,6 +101,11 @@ export class RaceService {
   public async deleteRace(id: string): Promise<boolean> {
     await this.afs.doc<IRace>(`races/${id}`).delete();
     return true;
+  }
+
+  public async getPersonnageRace(personnage: IPersonnage): Promise<IPersonnage> {
+    personnage.race = await this.getRace(personnage.raceRef, true);
+    return personnage;
   }
 
   private _saveState(item: IRace): IRaceDB {
