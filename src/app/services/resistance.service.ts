@@ -82,7 +82,7 @@ export class ResistanceService {
   public async getPersonnageResistances(personnage: IPersonnage): Promise<IPersonnage> {
 
     //Race Resistances
-    if (personnage.race.resistances) {
+    if (personnage?.race?.resistances?.length) {
 
       personnage.race.resistances.forEach(resistanceItem => {
 
@@ -124,10 +124,10 @@ export class ResistanceService {
     }
 
     //Classe Resistances
-    if (personnage.classes && personnage.classes.length > 0) {
+    if (personnage?.classes?.length) {
       personnage.classes.forEach(classeItem => {
 
-        if (classeItem.classe && classeItem.classe.resistances) {
+        if (classeItem?.classe?.resistances?.length) {
           classeItem.classe.resistances.forEach(resistanceItem => {
 
             let found: boolean = false;
@@ -172,7 +172,7 @@ export class ResistanceService {
     }
 
     //Aptitude Resistances
-    if (personnage.aptitudes) {
+    if (personnage?.aptitudes?.length) {
 
       personnage.aptitudes.forEach(aptitudeItem => {
         aptitudeItem.aptitude.resistances.forEach(aptitudeResistanceItem => {
@@ -218,7 +218,7 @@ export class ResistanceService {
     }
 
     //Don Resistances
-    if (personnage.dons) {
+    if (personnage?.dons?.length) {
 
       personnage.dons.forEach(donItem => {
         donItem.don.resistances.forEach(donResistanceItem => {
@@ -264,7 +264,6 @@ export class ResistanceService {
     }
 
     return personnage;
-
   }
 
   private _saveState(item: IResistance): IResistanceDB {

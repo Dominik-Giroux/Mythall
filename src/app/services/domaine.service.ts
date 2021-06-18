@@ -5,7 +5,8 @@ import { DonService, DonItem } from './don.service';
 import { SortService, SortItem } from './sort.service';
 import { ClasseService, IClasse } from './classe.service';
 import { IAlignement } from './alignement.service';
-import { Choix, IPersonnage } from './personnage.service';
+import { IPersonnage } from './personnage.service';
+import { Choix } from './choix.service';
 
 export interface IDomaine extends IDomaineDB {
   id: string;
@@ -58,11 +59,13 @@ export class DomaineService {
     } as IDomaine;
 
     if (full) {
-      this._getClasses(domaine);
-      this._getDomaineContraire(domaine);
-      this._getAptitudees(domaine);
-      this._getSorts(domaine);
-      this._getDons(domaine);
+      await Promise.all([
+        this._getClasses(domaine),
+        this._getDomaineContraire(domaine),
+        this._getAptitudees(domaine),
+        this._getSorts(domaine),
+        this._getDons(domaine),
+      ]);
     }
 
     return domaine;
@@ -95,7 +98,7 @@ export class DomaineService {
     }
 
     // Filtre selon les domaines du personnage
-    if (personnage.domaines && personnage.domaines.length > 0) {
+    if (personnage?.domaines?.length) {
       personnage.domaines.forEach(domainePersonnage => {
 
         // Filtre domaine existant
@@ -112,29 +115,19 @@ export class DomaineService {
     }
 
     return list;
-
   }
 
   public async getPersonnageDomaines(personnage: IPersonnage): Promise<IPersonnage> {
-
-    if (personnage.domainesRef && personnage.domainesRef.length > 0) {
-
-      let count: number = 0;
-
-      personnage.domainesRef.forEach(async (domaineRef) => {
-        const domaine = await this.getDomaine(domaineRef)
-        if (!personnage.domaines) personnage.domaines = [];
-        personnage.domaines.push(domaine);
-        count++;
-        if (count == personnage.domainesRef.length) {
-          return personnage;
-        }
-      });
-
-    } else {
-      return personnage;
+    if (personnage?.domainesRef) {
+      await Promise.all(
+        personnage.domainesRef.map(async (domaineRef) => {
+          const domaine = await this.getDomaine(domaineRef);
+          if (!personnage.domaines) personnage.domaines = [];
+          personnage.domaines.push(domaine);
+        })
+      );
     }
-
+    return personnage;
   }
 
 
@@ -174,37 +167,45 @@ export class DomaineService {
     domaine.domaineContraire = await this.getDomaine(domaine.domaineContraireRef);
   }
 
-  private _getClasses(domaine: IDomaine): void {
-    if (domaine.multiclassementRef) {
-      domaine.multiclassementRef.forEach(async (classeRef) => {
-        const classe = await this.classeService.getClasse(classeRef);
-        if (!domaine.multiclassement) domaine.multiclassement = [];
-        domaine.multiclassement.push(classe);
-      });
+  private async _getClasses(domaine: IDomaine): Promise<void> {
+    if (domaine?.multiclassementRef?.length) {
+      await Promise.all(
+        domaine.multiclassementRef.map(async (classeRef) => {
+          const classe = await this.classeService.getClasse(classeRef);
+          if (!domaine.multiclassement) domaine.multiclassement = [];
+          domaine.multiclassement.push(classe);
+        })
+      );
     }
   }
 
-  private _getAptitudees(domaine: IDomaine): void {
-    if (domaine.aptitudes && domaine.aptitudes.length > 0) {
-      domaine.aptitudes.forEach(async (aptitudeItem: AptitudeItem) => {
-        aptitudeItem.aptitude = await this.aptitudeService.getAptitude(aptitudeItem.aptitudeRef);
-      });
+  private async _getAptitudees(domaine: IDomaine): Promise<void> {
+    if (domaine?.aptitudes?.length) {
+      await Promise.all(
+        domaine.aptitudes.map(async (aptitudeItem) => {
+          aptitudeItem.aptitude = await this.aptitudeService.getAptitude(aptitudeItem.aptitudeRef);
+        })
+      );
     }
   }
 
-  private _getDons(domaine: IDomaine): void {
-    if (domaine.dons && domaine.dons.length > 0) {
-      domaine.dons.forEach(async (donItem: DonItem) => {
-        donItem.don = await this.donService.getDon(donItem.donRef);
-      });
+  private async _getDons(domaine: IDomaine): Promise<void> {
+    if (domaine?.dons?.length) {
+      await Promise.all(
+        domaine.dons.map(async (donItem) => {
+          donItem.don = await this.donService.getDon(donItem.donRef);
+        })
+      );
     }
   }
 
-  private _getSorts(domaine: IDomaine): void {
-    if (domaine.sorts && domaine.sorts.length > 0) {
-      domaine.sorts.forEach(async (sortItem) => {
-        sortItem.sort = await this.sortService.getSort(sortItem.sortRef);
-      });
+  private async _getSorts(domaine: IDomaine): Promise<void> {
+    if (domaine?.sorts?.length) {
+      await Promise.all(
+        domaine?.sorts.map(async (sortItem) => {
+          sortItem.sort = await this.sortService.getSort(sortItem.sortRef);
+        })
+      );
     }
   }
 

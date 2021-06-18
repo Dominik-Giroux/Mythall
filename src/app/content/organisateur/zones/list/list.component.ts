@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ZoneService, IZone } from '../../../../services/zone.service';
 import { MatDialog } from '@angular/material/dialog';
 import { DeleteDialogComponent } from '../../../../layout/dialogs/delete/delete.dialog.component';
-import { ToastService } from '../../../../services/@core/toast.service';
+import { ToastService } from '../../../../services/toast.service';
 
 @Component({
   selector: 'app-organisateur-zones-list',

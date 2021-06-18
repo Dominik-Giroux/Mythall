@@ -5,21 +5,23 @@ import { AuthenticationService } from '../authentication.service';
 import { tap } from 'rxjs/operators';
 
 @Injectable()
-export class AnimateurGuard implements CanActivate {
+export class OrganisateurGuard implements CanActivate {
 
-  constructor(private auth: AuthenticationService) {}
+  constructor(private auth: AuthenticationService) { }
 
   canActivate(
     next: ActivatedRouteSnapshot,
     state: RouterStateSnapshot): Observable<boolean> {
 
-    return of(this.auth.user && this.auth.isAnimateur(this.auth.user)).pipe(
-      tap(isAdmin => {
-        if (!isAdmin) {
-          console.error('Access Denied - Animateur Only')
-        }
-      })
-    );
+    return of(false);
+
+    // return of(this.auth.user && this.auth.isOrganisateur(this.auth.user)).pipe(
+    //   tap(isAdmin => {
+    //     if (!isAdmin) {
+    //       console.error('Access Denied - Organisateur Only')
+    //     }
+    //   })
+    // );
 
   }
 }

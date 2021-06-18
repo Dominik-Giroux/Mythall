@@ -9,7 +9,7 @@ import { SortService, ISort, SortItem } from '../../../../services/sort.service'
 import { ImmuniteService, IImmunite } from '../../../../services/immunite.service';
 import { ResistanceService, IResistance, ResistanceItem } from '../../../../services/resistance.service';
 import { StatistiqueService, IStatistique, StatistiqueItem } from '../../../../services/statistique.service';
-import { ChoixTypes, Choix } from '../../../../services/personnage.service';
+import { ChoixTypes, Choix } from '../../../../services/choix.service';
 
 @Component({
   selector: 'app-organisateur-classes-form',

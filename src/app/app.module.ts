@@ -8,10 +8,11 @@ import { FirebaseModule } from './modules/firebase.module';
 import { MediaMatcher } from '@angular/cdk/layout';
 
 //Services
-import { ToastService } from './services/@core/toast.service';
-import { AuthenticationService } from './services/@core/authentication.service';
+import { ToastService } from './services/toast.service';
+import { AuthenticationService } from './services/authentication.service';
 import { AlignementService } from './services/alignement.service';
 import { AptitudeService } from './services/aptitude.service';
+import { ChoixService } from './services/choix.service';
 import { ClasseService } from './services/classe.service';
 import { DieuService } from './services/dieu.service';
 import { DomaineService } from './services/domaine.service';
@@ -28,16 +29,13 @@ import { RaceService } from './services/race.service';
 import { ResistanceService } from './services/resistance.service';
 import { StatistiqueService } from './services/statistique.service';
 import { SortService } from './services/sort.service';
-import { UserService } from './services/@core/user.service';
+import { UserService } from './services/user.service';
 import { ZoneService } from './services/zone.service';
 
 //Guards
-import { JoueurGuard } from './services/@core/guards/joueur.guard';
-import { AnimateurGuard } from './services/@core/guards/animateur.guard';
-import { OrganisateurGuard } from './services/@core/guards/organisateur.guard';
-
-//Core Elements
-import { Snackbar } from './services/@core/models/snackbar';
+import { JoueurGuard } from './services/guards/joueur.guard';
+import { AnimateurGuard } from './services/guards/animateur.guard';
+import { OrganisateurGuard } from './services/guards/organisateur.guard';
 
 //Layout
 import { AppComponent } from './app.component';
@@ -336,6 +334,7 @@ const appRoutes: Routes = [
     AuthenticationService,
     AptitudeService,
     AlignementService,
+    ChoixService,
     ClasseService,
     DieuService,
     DomaineService,
@@ -355,7 +354,6 @@ const appRoutes: Routes = [
     UserService,
     ZoneService,
     MediaMatcher,
-    Snackbar
   ],
   bootstrap: [AppComponent]
 })

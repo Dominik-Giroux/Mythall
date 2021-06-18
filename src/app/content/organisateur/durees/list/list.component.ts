@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { DeleteDialogComponent } from '../../../../layout/dialogs/delete/delete.dialog.component';
-import { ToastService } from '../../../../services/@core/toast.service';
+import { ToastService } from '../../../../services/toast.service';
 import { IDuree, DureeService } from '../../../../services/duree.service';
 
 @Component({

@@ -44,9 +44,11 @@ export class EspritService {
       ...data.data()
     } as IEsprit;
 
-    this._getAptitudees(esprit);
-    this._getSorts(esprit);
-    this._getDons(esprit);
+    await Promise.all([
+      this._getAptitudees(esprit),
+      this._getSorts(esprit),
+      this._getDons(esprit)
+    ]);
 
     return esprit;
   }
@@ -72,8 +74,7 @@ export class EspritService {
 
   public async getPersonnageEsprit(personnage: IPersonnage): Promise<IPersonnage> {
     if (personnage.espritRef) {
-      const response = await this.getEsprit(personnage.espritRef);
-      personnage.esprit = response;
+      personnage.esprit = await this.getEsprit(personnage.espritRef);
     }
     return personnage;
   }
@@ -105,27 +106,33 @@ export class EspritService {
     };
   }
 
-  private _getAptitudees(esprit: IEsprit): void {
-    if (esprit.aptitudes && esprit.aptitudes.length > 0) {
-      esprit.aptitudes.forEach(async (aptitudeItem: AptitudeItem) => {
-        aptitudeItem.aptitude = await this.aptitudeService.getAptitude(aptitudeItem.aptitudeRef);
-      });
+  private async _getAptitudees(esprit: IEsprit): Promise<void> {
+    if (esprit?.aptitudes?.length) {
+      await Promise.all(
+        esprit.aptitudes.map(async (aptitudeItem) => {
+          aptitudeItem.aptitude = await this.aptitudeService.getAptitude(aptitudeItem.aptitudeRef);
+        })
+      );
     }
   }
 
-  private _getDons(esprit: IEsprit): void {
-    if (esprit.dons && esprit.dons.length > 0) {
-      esprit.dons.forEach(async (donItem: DonItem) => {
-        donItem.don = await this.donService.getDon(donItem.donRef);
-      });
+  private async _getDons(esprit: IEsprit): Promise<void> {
+    if (esprit?.dons?.length) {
+      await Promise.all(
+        esprit.dons.map(async (donItem) => {
+          donItem.don = await this.donService.getDon(donItem.donRef);
+        })
+      );
     }
   }
 
-  private _getSorts(esprit: IEsprit): void {
-    if (esprit.sorts && esprit.sorts.length > 0) {
-      esprit.sorts.forEach(async (sortItem: SortItem) => {
-        sortItem.sort = await this.sortService.getSort(sortItem.sortRef);
-      });
+  private async _getSorts(esprit: IEsprit): Promise<void> {
+    if (esprit?.sorts?.length) {
+      await Promise.all(
+        esprit?.sorts.map(async (sortItem) => {
+          sortItem.sort = await this.sortService.getSort(sortItem.sortRef);
+        })
+      );
     }
   }
 

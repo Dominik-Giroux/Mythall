@@ -27,7 +27,6 @@ export class StatistiqueItem {
   cummulable: boolean;
 }
 
-
 export class StatistiqueValue {
 
   constructor() {
@@ -176,7 +175,7 @@ export class StatistiqueService {
   public async getPersonnageStatistiques(personnage: IPersonnage): Promise<IPersonnage> {
 
     //Race Statistiques
-    if (personnage.race.statistiques) {
+    if (personnage?.race?.statistiques?.length) {
 
       personnage.race.statistiques.forEach(statistiqueItem => {
 
@@ -212,15 +211,15 @@ export class StatistiqueService {
     }
 
     //Classe Statistiques
-    if (personnage.classes) {
+    if (personnage?.classes?.length) {
       personnage.classes.forEach(classeItem => {
 
-        if (classeItem.classe && classeItem.classe.statistiques) {
+        if (classeItem?.classe?.statistiques?.length) {
           classeItem.classe.statistiques.forEach(statistiqueItem => {
 
             let found = false;
 
-            if (personnage.statistiques) {
+            if (personnage?.statistiques?.length) {
               personnage.statistiques.forEach(personnageStatistiqueItem => {
                 if (statistiqueItem.statistiqueRef == personnageStatistiqueItem.statistique.id && classeItem.niveau >= statistiqueItem.niveau) {
 
@@ -254,7 +253,7 @@ export class StatistiqueService {
     }
 
     //Aptitude Statistiques
-    if (personnage.aptitudes) {
+    if (personnage?.aptitudes?.length) {
       personnage.aptitudes.forEach(aptitudeItem => {
         aptitudeItem.aptitude.statistiques.forEach(aptitudeStatistiqueItem => {
           const personnageStatistiqueItem = personnage.statistiques.find((personnageStatistique) => personnageStatistique.statistique.id === aptitudeStatistiqueItem.statistiqueRef);
@@ -287,7 +286,7 @@ export class StatistiqueService {
     }
 
     //Don Statistiques
-    if (personnage.dons && false) {
+    if (personnage?.dons?.length) {
 
       personnage.dons.forEach(donItem => {
         donItem.don.statistiques.forEach(donStatistiqueItem => {
@@ -453,13 +452,12 @@ export class StatistiqueService {
     });
 
     return personnage;
-
   }
 
   public async getPersonnageCapaciteSpeciales(personnage: IPersonnage): Promise<IPersonnage> {
 
     if (!personnage.capaciteSpeciales) personnage.capaciteSpeciales = [];
-    personnage.statistiques.forEach(statistiqueValue => {
+    personnage?.statistiques.forEach(statistiqueValue => {
       let found: boolean = false;
       Object.values(StatistiqueIds).forEach((statistiqueId) => {
         if (statistiqueId == statistiqueValue.statistique.id) {

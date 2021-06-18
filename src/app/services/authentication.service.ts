@@ -2,19 +2,18 @@ import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { AngularFirestore } from '@angular/fire/firestore';
 import { AngularFireAuth } from '@angular/fire/auth';
-import { switchMap, tap } from 'rxjs/operators';
-import * as firebase from 'firebase';
-import { UserService, IUser } from './user.service';
 import { MatDialog } from '@angular/material/dialog';
-import { ErrorDialogComponent } from '../../layout/dialogs/error/error.dialog.component';
+import { auth } from 'firebase/app';
 import { Observable, of } from 'rxjs';
+import { switchMap, tap } from 'rxjs/operators';
+import { UserService, IUser } from './user.service';
+import { ErrorDialogComponent } from '../layout/dialogs/error/error.dialog.component';
 
 @Injectable()
 export class AuthenticationService {
 
-  public user$: Observable<IUser>;
-  public user: IUser;
-
+  // public user$: Observable<IUser>;
+  
   constructor(
     private afs: AngularFirestore,
     private afAuth: AngularFireAuth,
@@ -22,29 +21,33 @@ export class AuthenticationService {
     private router: Router,
     private userService: UserService
   ) {
-    this.setUser();
+    // this.setUser();
   }
 
-  private setUser() {
-    this.user$ = this.afAuth.authState.pipe(
-      switchMap(user => {
-        if (user) {
-          return this.afs.doc<IUser>(`users/${user.uid}`).valueChanges();
-        } else {
-          return of(null)
-        }
-      }),
-      tap(user => this.user = user)
-    )
+  public async user(): Promise<IUser> {
+    const auth = await this.afAuth.authState.toPromise();
+    const user = await this.userService.getUser(auth.uid);
+    return user;
   }
+
+  // private setUser() {
+  //   this.afAuth.authState.pipe(
+  //     switchMap(async (user) => {
+  //       if (user) {
+  //         this.user$ = this.afs.doc<IUser>(`users/${user.uid}`).valueChanges();
+  //         this.user = await this.userService.getUser(user.uid);
+  //       }
+  //     })
+  //   )
+  // }
 
   facebookLogin() {
-    const provider = new firebase.auth.FacebookAuthProvider();
+    const provider = new auth.FacebookAuthProvider();
     return this.oAuthLogin(provider);
   }
 
   googleLogin() {
-    const provider = new firebase.auth.GoogleAuthProvider()
+    const provider = new auth.GoogleAuthProvider()
     return this.oAuthLogin(provider);
   }
 
@@ -54,17 +57,15 @@ export class AuthenticationService {
     });
   }
 
-  private oAuthLogin(provider) {
-    return this.afAuth.auth.signInWithPopup(provider)
-      .then((credential: firebase.auth.UserCredential) => {
-        this.updateUserData(credential.user)
-      }).then(
-        () => this.router.navigate([""])
-      ).catch(error => {
-        this.dialog.open(ErrorDialogComponent, {
-          data: error.message
-        });
+  private async oAuthLogin(provider): Promise<void> {
+    try {
+      await this.updateUserData(await this.afAuth.auth.signInWithPopup(provider));
+      this.router.navigate([""]);
+    } catch (error) {
+      this.dialog.open(ErrorDialogComponent, {
+        data: error.message
       });
+    }
   }
 
   private async updateUserData(user: any): Promise<void> {
@@ -77,14 +78,14 @@ export class AuthenticationService {
     } as IUser;
 
     //Update Data from Credentials
-    updatedUser.uid = user.uid;
-    updatedUser.displayname = user.displayName;
-    updatedUser.email = user.email;
-    updatedUser.photoURL = user.photoURL;
+    updatedUser.uid = user.user.uid;
+    updatedUser.displayname = user.user.displayName;
+    updatedUser.email = user.user.email;
+    updatedUser.photoURL = user.user.photoURL;
 
     const userDB = await this.userService.getUser(updatedUser.uid);
 
-    if (!userDB) {
+    if (!userDB || userDB.uid === 'undefined') {
       updatedUser.createdAt = new Date();
       updatedUser.roles = { ...updatedUser.roles };
       await this.userService.addUser(updatedUser);
@@ -121,6 +122,5 @@ export class AuthenticationService {
     }
     return false
   }
-
 
 }

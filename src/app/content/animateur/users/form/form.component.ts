@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Router, ActivatedRoute, Params } from '@angular/router';
-import { UserService, IUser } from '../../../../services/@core/user.service';
-import { AuthenticationService } from '../../../../services/@core/authentication.service';
+import { UserService, IUser } from '../../../../services/user.service';
+import { AuthenticationService } from '../../../../services/authentication.service';
 
 @Component({
   selector: 'app-animateur-users-form',

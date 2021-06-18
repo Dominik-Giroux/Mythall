@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { UserService, IUser } from '../../../../services/@core/user.service';
+import { UserService, IUser } from '../../../../services/user.service';
 import { MatDialog } from '@angular/material/dialog';
 import { Sort } from '@angular/material/sort';
 import { DeleteDialogComponent } from '../../../../layout/dialogs/delete/delete.dialog.component';

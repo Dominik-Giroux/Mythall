@@ -97,7 +97,6 @@ export class SortService {
 
     // Get list de sort disponible
     if (personnage.classes) {
-
       personnage.classes.forEach((classe) => {
         classe.classe.sortsDisponible.forEach(async (sortDispo) => {
           if (sortDispo.niveauObtention <= classe.niveau) {
@@ -105,17 +104,14 @@ export class SortService {
           }
         });
       });
-
     }
 
     // Filtre les sorts déjà existant
-    if (personnage.sorts && personnage.sorts.length > 0) {
+    if (personnage?.sorts?.length) {
       personnage.sorts.forEach(sortPerso => {
-
         list = list.filter(sort => {
           return sort.id != sortPerso.sortRef;
         })
-
       });
     }
 
@@ -131,15 +127,16 @@ export class SortService {
     });
 
     return list;
-
   }
 
   public async getPersonnageSorts(personnage: IPersonnage): Promise<IPersonnage> {
 
+    if (!personnage.sorts) personnage.sorts = [];
+
     // Sorts Classes
-    if (personnage.classes && personnage.classes.length > 0) {
+    if (personnage?.classes?.length) {
       personnage.classes.forEach(classeItem => {
-        if (classeItem.classe.sorts && classeItem.classe.sorts.length > 0) {
+        if (classeItem?.classe?.sorts?.length) {
           classeItem.classe.sorts.forEach(sortItem => {
             if (classeItem.niveau >= sortItem.niveauObtention) {
               personnage.sorts.push(sortItem);
@@ -150,9 +147,9 @@ export class SortService {
     }
 
     // Sorts Domaines
-    if (personnage.domaines && personnage.domaines.length > 0) {
+    if (personnage?.domaines?.length) {
       personnage.domaines.forEach(domaine => {
-        if (domaine.sorts && domaine.sorts.length > 0) {
+        if (domaine?.sorts?.length) {
           domaine.sorts.forEach(sortItem => {
             personnage.classes.forEach(classe => {
               if (classe.classeRef == 'fNqknNgq0QmHzUaYEvEd' && classe.niveau >= sortItem.niveauObtention) {
@@ -165,7 +162,7 @@ export class SortService {
     }
 
     // Sorts Esprit
-    if (personnage.esprit && personnage.esprit.sorts && personnage.esprit.sorts.length > 0) {
+    if (personnage?.esprit?.sorts?.length) {
       personnage.esprit.sorts.forEach(sortItem => {
         personnage.classes.forEach(classe => {
           if (classe.classeRef == 'wW48swrqmr77awfyADMX' && classe.niveau >= sortItem.niveauObtention) {
@@ -176,9 +173,9 @@ export class SortService {
     };
 
     // Sorts Aptitudes (Équivalence)
-    if (personnage.aptitudes) {
+    if (personnage?.aptitudes?.length) {
       personnage.aptitudes.forEach(aptitudeItem => {
-        if (aptitudeItem.aptitude && aptitudeItem.aptitude.sortsEquivalentRef) {
+        if (aptitudeItem?.aptitude?.sortsEquivalentRef?.length) {
           aptitudeItem.aptitude.sortsEquivalentRef.forEach(aptSortRef => {
             let sortItem: SortItem = new SortItem();
             sortItem.niveauObtention = aptitudeItem.niveauObtention;
@@ -190,43 +187,22 @@ export class SortService {
     }
 
     // Remplis la liste de sorts complète
-    let count = 0;
-    if (!personnage.sorts) personnage.sorts = [];
-    if (personnage.sorts && personnage.sorts.length > 0) {
-      personnage.sorts.forEach(async (sortItem: SortItem) => {
-
-        if (!sortItem.sort) { //Avoid fetching Sort if already fetch
+    if (personnage?.sorts?.length) {
+      await Promise.all(
+        personnage.sorts.map(async (sortItem) => {
           sortItem.sort = await this.getSort(sortItem.sortRef);
-          count++;
-          if (count == personnage.sorts.length) {
-
-            // Filter duplicated
-            personnage.sorts = personnage.sorts.filter((sort, index, self) =>
-              index === self.findIndex((d) => (
-                d.sortRef === sort.sortRef
-              ))
-            )
-
-            return personnage;
-          }
-        } else {
-          count++;
-          if (count == personnage.sorts.length) {
-
-            personnage.sorts = personnage.sorts.filter((sort, index, self) =>
-              index === self.findIndex((d) => (
-                d.sortRef === sort.sortRef
-              ))
-            )
-
-            return personnage;
-          }
-        }
-
-      });
-    } else {
-      return personnage;
+        })
+      );
     }
+
+    // Filter duplicated
+    personnage.sorts = personnage.sorts.filter((sort, index, self) =>
+      index === self.findIndex((d) => (
+        d.sortRef === sort.sortRef
+      ))
+    )
+
+    return personnage;
   }
 
   private _saveState(item: ISort): ISortDB {

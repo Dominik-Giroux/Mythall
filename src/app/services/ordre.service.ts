@@ -41,7 +41,7 @@ export class OrdreService {
       id: data.id,
       ...data.data()
     } as IOrdre;
-    this.getClasses(order);
+    await this._getClasses(order);
     return order;
   }
 
@@ -87,24 +87,18 @@ export class OrdreService {
   }
 
   public async getPersonnageOrdres(personnage: IPersonnage): Promise<IPersonnage> {
-
-    // Retourne seulement la liste des ordres du personnage
-    let count: number = 0;
     if (!personnage.ordresRef) personnage.ordresRef = [];
 
-    if (personnage.ordresRef && personnage.ordresRef.length > 0) {
-      personnage.ordresRef.forEach(async (ordreRef) => {
-        const ordre = await this.getOrdre(ordreRef);
-        if (!personnage.ordres) personnage.ordres = [];
-        personnage.ordres.push(ordre);
-        count++;
-        if (count == personnage.ordresRef.length) {
-          return personnage;
-        }
-      });
-    } else {
-      return personnage;
+    if (personnage?.ordresRef?.length) {
+      await Promise.all(
+        personnage.ordresRef.map(async (ordreRef) => {
+          if (!personnage.ordres) personnage.ordres = [];
+          personnage.ordres.push(await this.getOrdre(ordreRef));
+        })
+      );
     }
+
+    return personnage;
   }
 
   private _saveState(item: IOrdre): IOrdreDB {
@@ -117,12 +111,14 @@ export class OrdreService {
     };
   }
 
-  private getClasses(ordre: IOrdre): void {
-    if (ordre.multiclassementRef) {
-      ordre.multiclassementRef.forEach(async (classeRef) => {
-        if (!ordre.multiclassement) ordre.multiclassement = [];
-        ordre.multiclassement.push(await this.classeService.getClasse(classeRef));
-      });
+  private async _getClasses(ordre: IOrdre): Promise<void> {
+    if (ordre?.multiclassementRef?.length) {
+      await Promise.all(
+        ordre.multiclassementRef.map(async (classeRef) => {
+          if (!ordre.multiclassement) ordre.multiclassement = [];
+          ordre.multiclassement.push(await this.classeService.getClasse(classeRef));
+        })
+      )
     }
   }
 

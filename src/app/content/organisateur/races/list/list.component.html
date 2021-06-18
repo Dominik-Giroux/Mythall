@@ -22,7 +22,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let race of races | async">
+          <tr *ngFor="let race of races">
             <td [innerHtml]="race.nom"></td>
             <td [innerHtml]="race.description"></td>
             <td>

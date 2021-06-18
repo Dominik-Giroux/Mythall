@@ -6,7 +6,7 @@ import { AptitudeService, AptitudeItem } from './aptitude.service';
 import { ClasseService, ClasseItem } from './classe.service';
 import { DonService, DonItem } from './don.service';
 import { RaceService, IRace } from './race.service';
-import { UserService, IUser } from './@core/user.service';
+import { UserService, IUser } from './user.service';
 import { StatistiqueService, StatistiqueValue } from './statistique.service';
 import { DomaineService, IDomaine } from './domaine.service';
 import { IDieu, DieuService } from './dieu.service';
@@ -58,35 +58,6 @@ export interface IPersonnageDB {
   domainesRef: string[];
   vie: number;
 }
-
-export class Choix {
-
-  constructor() {
-    this.type = '';
-    this.quantite = 1;
-    this.niveauObtention = 0;
-    this.ref = [];
-  }
-
-  type: string;
-  quantite: number;
-  niveauObtention: number;
-  categorie?: string;
-  domaine: boolean;
-  ref: string[]; // Référence pour choix de don, sort, aptitude, fourberie
-}
-
-export const ChoixTypes: string[] = [
-  'aptitude',
-  'connaissance',
-  'don',
-  'domaine',
-  'ecole',
-  'esprit',
-  'fourberie',
-  'ordre',
-  'sort'
-]
 
 @Injectable()
 export class PersonnageService {
@@ -254,141 +225,11 @@ export class PersonnageService {
     }
   }
 
-
-  public async getChoixPersonnage(personnage: IPersonnage, progressingClasse: ClasseItem): Promise<Choix[]> {
-
-    let listChoix: Choix[] = [];
-
-    // Dons aux 3 niveaux & don niveau 1
-    if (personnage.niveauReel % 3 == 0 || personnage.niveauReel == 1) {
-
-      const don: Choix = new Choix();
-      don.type = 'don';
-      don.categorie = 'Normal';
-      don.niveauObtention = personnage.niveauReel;
-      don.quantite = 1;
-
-      listChoix.push(Object.assign({}, don));
-
-    }
-
-    // Don Racial Humain
-    if (personnage.raceRef == 'RkYWeQrxFkmFaepDM09n' && personnage.niveauReel == 1) {
-
-      const don: Choix = new Choix();
-      don.type = 'don';
-      don.categorie = 'Normal';
-      don.niveauObtention = 1;
-      don.quantite = 1;
-
-      listChoix.push({ ...don });
-
-    }
-
-    // Don Racial Elf
-    if (personnage.raceRef == '5hteaYQ4K8J1MaAvU9Zh' && personnage.niveauReel == 1) {
-
-      const don: Choix = new Choix();
-      don.type = 'don';
-      don.categorie = 'Connaissance';
-      don.niveauObtention = 1;
-      don.quantite = 1;
-
-      listChoix.push({ ...don });
-
-    }
-
-    // Get Choix de Classe
-    if (personnage.classes) {
-      personnage.classes.forEach(classeItem => {
-
-        // Choix de classe
-        if (classeItem.classeRef == progressingClasse.classeRef && classeItem.niveau == progressingClasse.niveau) {
-          classeItem.classe.choix.forEach(choix => {
-            if (choix.niveauObtention == progressingClasse.niveau) {
-              listChoix.push(choix);
-            }
-          });
-        }
-
-      });
-    }
-
-    // Domaines
-    if (personnage.domaines && personnage.domaines.length > 0) {
-      personnage.domaines.forEach(domaine => {
-
-        // Prêtre
-        if (progressingClasse.classeRef == 'fNqknNgq0QmHzUaYEvEd') {
-          domaine.choix.forEach(choixDomaine => {
-            if (choixDomaine.niveauObtention == progressingClasse.niveau) {
-              listChoix.push(choixDomaine);
-            }
-          });
-        }
-
-      });
-    }
-
-    // ...
-
-    return listChoix;
-
-  }
-
-  public getChoixClasse(personnage: IPersonnage, progressingClasse: ClasseItem): Choix[] {
-
-    let listChoix: Choix[] = [];
-
-    // Get All Classes Choices
-    if (personnage.classes) {
-      personnage.classes.forEach(classeItem => {
-
-        // Choix de classe
-        if (classeItem.classeRef == progressingClasse.classeRef && classeItem.niveau == progressingClasse.niveau) {
-          classeItem.classe.choix.forEach(choix => {
-            listChoix.push(choix);
-          });
-        }
-
-      });
-    }
-
-    return listChoix;
-
-  }
-
-  public getChoixDomaine(personnage: IPersonnage, progressingClasse: ClasseItem): Choix[] {
-
-    let listChoix: Choix[] = [];
-
-    // Get All Classes Choices
-    if (progressingClasse.classeRef == 'fNqknNgq0QmHzUaYEvEd') {
-      personnage.classes.forEach(classeItem => {
-
-        // Choix de domaine
-        if (classeItem.classeRef == 'fNqknNgq0QmHzUaYEvEd' && progressingClasse.niveau == classeItem.niveau) { // ID de prêtre
-          personnage.domaines.forEach(domaine => {
-            domaine.choix.forEach(choix => {
-              listChoix.push(choix);
-            });
-          });
-        }
-
-      });
-    }
-
-    return listChoix;
-
-  }
-
-
   public async buildPersonnage(personnage: IPersonnage): Promise<IPersonnage> {
 
     try {
-      this.dialog.open(LoadingDialogComponent);
 
-      console.log("Building Personnage...");
+      this._showLoading(`Personnage`);
       await Promise.all([
         this.userService.getPersonnageUser(personnage),
         this.raceService.getPersonnageRace(personnage),
@@ -399,35 +240,35 @@ export class PersonnageService {
         this.fourberieService.getPersonnageFourberies(personnage)
       ]);
 
-      console.log("Building Niveau Effectif...");
-      await this._getNiveauEffectif(personnage);
+      this._showLoading(`Niveau Effectif`);
+      await this._getPersonnageNiveauEffectif(personnage);
 
-      console.log("Building Domaines & Esprits...");
+      this._showLoading('Domaines & Esprits');
       await Promise.all([
         this.domaineService.getPersonnageDomaines(personnage),
         this.espritService.getPersonnageEsprit(personnage)
       ]);
 
-      console.log("Building Aptitudes...");
+      this._showLoading('Aptitudes');
       await this.aptitudeService.getPersonnageAptitudes(personnage);
 
-      console.log("Building Sorts & Dons...");
+      this._showLoading('Sorts & Dons');
       await Promise.all([
         this.sortService.getPersonnageSorts(personnage),
         this.donService.getPersonnageDons(personnage)
       ]);
 
-      console.log("Building Base Statistiques...");
+      this._showLoading('Statistiques de base');
       await this.statistiqueService.getPersonnageStatistiquesParDefault(personnage);
 
-      console.log('Building Statistiques, Resistances & Immunities...');
+      this._showLoading('Statistiques, Resistances & Immunities');
       await Promise.all([
         this.statistiqueService.getPersonnageStatistiques(personnage),
         this.resistanceService.getPersonnageResistances(personnage),
         this.immuniteServices.getPersonnageImmunites(personnage)
       ]);
 
-      console.log("Building Niveau de dons & Capacité spéciales...");
+      this._showLoading('Niveau de dons & Capacité spéciales');
       await Promise.all([
         this.donService.getPersonnageDonsNiveauEffectif(personnage),
         this.statistiqueService.getPersonnageCapaciteSpeciales(personnage)
@@ -449,7 +290,7 @@ export class PersonnageService {
 
   }
 
-  private async _getNiveauEffectif(personnage: IPersonnage): Promise<IPersonnage> {
+  private async _getPersonnageNiveauEffectif(personnage: IPersonnage): Promise<IPersonnage> {
 
     personnage.niveauEffectif = 0;
     personnage.niveauReel = 0;
@@ -483,7 +324,12 @@ export class PersonnageService {
     }
 
     return personnage;
+  }
 
+  private _showLoading(data?: string) {
+    console.log(`Building  ${data}...`);
+    this.dialog.closeAll();
+    this.dialog.open(LoadingDialogComponent, { data: `Loading ${data}...` });
   }
 
 }

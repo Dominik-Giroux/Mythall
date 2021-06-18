@@ -7,7 +7,7 @@ import { SortService, ISort, SortItem } from '../../../../services/sort.service'
 import { ClasseService, IClasse } from '../../../../services/classe.service';
 import { IAlignement, AlignementService } from '../../../../services/alignement.service';
 import { FourberieService, IFourberie } from '../../../../services/fourberie.service';
-import { ChoixTypes, Choix } from '../../../../services/personnage.service';
+import { ChoixTypes, Choix } from '../../../../services/choix.service';
 
 @Component({
   selector: 'app-organisateur-domaines-form',

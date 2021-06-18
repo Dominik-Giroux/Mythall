@@ -13,13 +13,15 @@ export class JoueurGuard implements CanActivate {
     next: ActivatedRouteSnapshot,
     state: RouterStateSnapshot): Observable<boolean> {
 
-    return of(this.auth.user && this.auth.isJoueur(this.auth.user)).pipe(
-      tap(isAdmin => {
-        if (!isAdmin) {
-          console.error('Access Denied - Joueur Only')
-        }
-      })
-    );
+    return of(true);
+
+    // return of(this.auth.user && this.auth.isJoueur(this.auth.user)).pipe(
+    //   tap(isAdmin => {
+    //     if (!isAdmin) {
+    //       console.error('Access Denied - Joueur Only')
+    //     }
+    //   })
+    // );
 
   }
 }

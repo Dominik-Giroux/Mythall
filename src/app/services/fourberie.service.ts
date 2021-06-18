@@ -57,8 +57,10 @@ export class FourberieService {
       id: data.id,
       ...data.data()
     } as IFourberie;
-    this._getFourberiesRequis(fourberie);
-    this._getModificateur(fourberie);
+    await Promise.all([
+      this._getFourberiesRequis(fourberie),
+      this._getModificateur(fourberie)
+    ]);
     return fourberie;
   }
 
@@ -84,7 +86,7 @@ export class FourberieService {
     let list: IFourberie[] = fourberies;
 
     // Filtre les fourberies déjà existant
-    if (personnage.fourberies && personnage.fourberies.length > 0) {
+    if (personnage?.fourberies?.length) {
       personnage.fourberies.forEach(fourberiesPerso => {
 
         list = list.filter(fourberie => {
@@ -104,7 +106,7 @@ export class FourberieService {
         let add: boolean = true;
 
         // No requirements
-        if (fourberie.fourberiesRequisRef && fourberie.fourberiesRequisRef.length > 0) {
+        if (fourberie?.fourberiesRequisRef?.length) {
 
           // Make sure all requirements is filled
           fourberie.fourberiesRequisRef.forEach(fourberieReqRef => {
@@ -153,55 +155,25 @@ export class FourberieService {
 
   public async getPersonnageFourberies(personnage: IPersonnage): Promise<IPersonnage> {
 
-    let count: number = 0;
     if (!personnage.fourberies) personnage.fourberies = [];
 
-    if (personnage.fourberies && personnage.fourberies.length > 0) {
-
-      personnage.fourberies.forEach(async (fourberieItem) => {
-
-        if (!fourberieItem.fourberie) { //Avoid fetching Fourberie if already fetch
-
+    // Remplis la liste de fourberies complète
+    if (personnage?.fourberies?.length) {
+      await Promise.all(
+        personnage.fourberies.map(async (fourberieItem) => {
           fourberieItem.fourberie = await this.getFourberie(fourberieItem.fourberieRef);
-          count++;
-
-          if (count == personnage.fourberies.length) {
-
-            // Filter Duplicates
-            personnage.fourberies = personnage.fourberies.filter((fourberie, index, self) =>
-              index === self.findIndex((d) => (
-                d.fourberieRef === fourberie.fourberieRef
-              ))
-            )
-
-            return personnage;
-
-          }
-
-        } else {
-
-          count++;
-
-          if (count == personnage.fourberies.length) {
-
-            // Filter Duplicates
-            personnage.fourberies = personnage.fourberies.filter((fourberie, index, self) =>
-              index === self.findIndex((d) => (
-                d.fourberieRef === fourberie.fourberieRef
-              ))
-            )
-
-            return personnage;
-
-          }
-
-        }
-
-      });
-
-    } else {
-      return personnage;
+        })
+      );
     }
+
+    // Filter Duplicates
+    personnage.fourberies = personnage.fourberies.filter((fourberie, index, self) =>
+      index === self.findIndex((d) => (
+        d.fourberieRef === fourberie.fourberieRef
+      ))
+    )
+
+    return personnage;
 
   }
 
@@ -227,12 +199,13 @@ export class FourberieService {
   }
 
   private async _getFourberiesRequis(fourberie: IFourberie): Promise<void> {
-    if (fourberie.fourberiesRequisRef) {
-      fourberie.fourberiesRequisRef.forEach(async (fourberieRequisRef) => {
-        const fourberieRequis = await this.getFourberie(fourberieRequisRef);
-        if (!fourberie.fourberiesRequis) fourberie.fourberiesRequis = [];
-        fourberie.fourberiesRequis.push(fourberieRequis);
-      });
+    if (fourberie?.fourberiesRequisRef?.length) {
+      await Promise.all(
+        fourberie.fourberiesRequisRef.map(async (fourberieRequisRef) => {
+          if (!fourberie.fourberiesRequis) fourberie.fourberiesRequis = [];
+          fourberie.fourberiesRequis.push(await this.getFourberie(fourberieRequisRef));
+        })
+      );
     }
   }
 

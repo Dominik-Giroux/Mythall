@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { AngularFirestore } from '@angular/fire/firestore';
-import { IPersonnage } from '../personnage.service';
+import { IPersonnage } from './personnage.service';
 
 export interface IRoles {
   joueur?: boolean;

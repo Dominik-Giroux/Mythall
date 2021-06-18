@@ -11,7 +11,7 @@ import { DonService, IDon, DonItem } from '../../../../services/don.service';
 import { EspritService, IEsprit } from '../../../../services/esprit.service';
 import { RaceService, IRace } from '../../../../services/race.service';
 import { SortService, ISort, SortItem } from '../../../../services/sort.service';
-import { UserService, IUser } from '../../../../services/@core/user.service';
+import { UserService, IUser } from '../../../../services/user.service';
 import { OrdreService, IOrdre } from '../../../../services/ordre.service';
 import { FourberieService, IFourberie, FourberieItem } from '../../../../services/fourberie.service';
 import { DomaineService, IDomaine } from '../../../../services/domaine.service';

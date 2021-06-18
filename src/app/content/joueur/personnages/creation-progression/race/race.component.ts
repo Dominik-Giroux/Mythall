@@ -1,8 +1,8 @@
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import { MatStepper } from '@angular/material/stepper';
-import { AuthenticationService } from '../../../../../services/@core/authentication.service';
+import { AuthenticationService } from '../../../../../services/authentication.service';
 import { RaceService, IRace } from '../../../../../services/race.service';
-import { UserService, IUser } from '../../../../../services/@core/user.service';
+import { UserService, IUser } from '../../../../../services/user.service';
 import { IPersonnage } from '../../../../../services/personnage.service';
 
 @Component({
@@ -26,10 +26,12 @@ export class JoueurPersonnageCreationProgressionRaceComponent implements OnInit 
 
   selectedRace: IRace;
   races: IRace[];
+  user: IUser;
   users: IUser[];
 
-  ngOnInit() {
+  async ngOnInit() {
 
+    await this._getUser();
     if (this.auth.isAnimateur(this.user)) {
       this._getUsers();
     }
@@ -42,12 +44,12 @@ export class JoueurPersonnageCreationProgressionRaceComponent implements OnInit 
 
   }
 
-  public get user(): IUser {
-    return this.auth.user;
-  }
-
   public get isCompleted(): boolean {
     return !!(this.personnage.nom && this.personnage.raceRef);
+  }
+
+  private async _getUser(): Promise<void> {
+    this.user = await this.auth.user();
   }
 
   private async _getUsers(): Promise<void> {

@@ -3,7 +3,7 @@ import { Router, ActivatedRoute, Params } from '@angular/router';
 import { IDieu, DieuService } from '../../../../services/dieu.service';
 import { IAlignement, AlignementService } from '../../../../services/alignement.service';
 import { DomaineService, IDomaine } from '../../../../services/domaine.service';
-import { ToastService } from '../../../../services/@core/toast.service';
+import { ToastService } from '../../../../services/toast.service';
 
 @Component({
   selector: 'app-organisateur-dieux-form',

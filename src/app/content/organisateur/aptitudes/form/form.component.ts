@@ -8,7 +8,7 @@ import { StatistiqueService, IStatistique, StatistiqueItem } from '../../../../s
 import { SortService, ISort } from '../../../../services/sort.service';
 import { IClasse } from '../../../../services/classe.service';
 import { IRace } from '../../../../services/race.service';
-import { ChoixTypes, Choix } from '../../../../services/personnage.service';
+import { ChoixTypes, Choix } from '../../../../services/choix.service';
 
 @Component({
   selector: 'app-organisateur-aptitudes-form',

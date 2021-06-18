@@ -89,10 +89,12 @@ export class DonService {
     }
 
     if (fiche || full) {
-      this._getImmunites(don);
-      this._getResistances(don);
-      this._getStatistiques(don);
-      this._getModificateur(don);
+      await Promise.all([
+        this._getImmunites(don),
+        this._getResistances(don),
+        this._getStatistiques(don),
+        this._getModificateur(don)
+      ]);
     }
 
     return don;
@@ -115,18 +117,14 @@ export class DonService {
 
   public async getAvailableDons(personnage: IPersonnage): Promise<IDon[]> {
 
-    const dons = await this.getDons();
-
-    let list: IDon[] = dons;
+    let list = await this.getDons();
 
     // Filtre les dons déjà existant
-    if (personnage.dons && personnage.dons.length > 0) {
+    if (personnage?.dons?.length) {
       personnage.dons.forEach(donPerso => {
-
         list = list.filter(don => {
           return don.id != donPerso.donRef;
         })
-
       });
     }
 
@@ -138,7 +136,7 @@ export class DonService {
     }
 
     // Filtre les classes authorisé
-    if (personnage.classes) {
+    if (personnage?.classes?.length) {
 
       let result: IDon[] = [];
 
@@ -237,23 +235,18 @@ export class DonService {
     );
 
     return list;
-
   }
 
   public async getAvailableConnaissances(personnage: IPersonnage): Promise<IDon[]> {
 
-    const dons = await this.getDons('Connaissance');
-
-    let list: IDon[] = dons;
+    let list = await this.getDons('Connaissance');
 
     // Filtre les dons déjà existant
-    if (personnage.dons && personnage.dons.length > 0) {
+    if (personnage?.dons?.length) {
       personnage.dons.forEach(donPerso => {
-
         list = list.filter(don => {
           return don.id != donPerso.donRef;
         })
-
       });
     }
 
@@ -267,7 +260,7 @@ export class DonService {
         let add: boolean = true;
 
         // No requirements
-        if (don.donsRequisRef && don.donsRequisRef.length > 0) {
+        if (don?.donsRequisRef?.length) {
 
           // Make sure all requirements is filled
           don.donsRequisRef.forEach(donReqRef => {
@@ -326,22 +319,23 @@ export class DonService {
     });
 
     return list;
-
   }
 
   public async getPersonnageDons(personnage: IPersonnage): Promise<IPersonnage> {
 
+    if (!personnage.dons) personnage.dons = [];
+
     // Dons Racial
-    if (personnage.race && personnage.race.donsRacialRef && personnage.race.donsRacialRef.length > 0) {
+    if (personnage?.race?.donsRacialRef?.length) {
       personnage.race.donsRacialRef.forEach(donRef => {
-        let donItem: DonItem = new DonItem();
+        let donItem = new DonItem();
         donItem.donRef = donRef;
         personnage.dons.push(donItem);
       })
     }
 
     // Dons Classes
-    if (personnage.classes && personnage.classes.length > 0) {
+    if (personnage?.classes?.length) {
       personnage.classes.forEach(classeItem => {
         if (classeItem.classe.dons && classeItem.classe.dons.length > 0) {
           classeItem.classe.dons.forEach(donItem => {
@@ -354,7 +348,7 @@ export class DonService {
     }
 
     // Dons Domaines
-    if (personnage.domaines && personnage.domaines.length > 0) {
+    if (personnage?.domaines?.length) {
       personnage.domaines.forEach(domaine => {
         if (domaine.dons && domaine.dons.length > 0) {
           domaine.dons.forEach(donItem => {
@@ -369,7 +363,7 @@ export class DonService {
     }
 
     // Dons Esprit
-    if (personnage.esprit && personnage.esprit.dons && personnage.esprit.dons.length > 0) {
+    if (personnage?.esprit?.dons?.length) {
       personnage.esprit.dons.forEach(donItem => {
         personnage.classes.forEach(classe => {
           if (classe.classeRef == 'wW48swrqmr77awfyADMX' && classe.niveau >= donItem.niveauObtention) {
@@ -380,9 +374,9 @@ export class DonService {
     };
 
     // Dons Fourberies (Équivalence)
-    if (personnage.fourberies) {
+    if (personnage?.fourberies?.length) {
       personnage.fourberies.forEach(fourberie => {
-        if (fourberie.fourberie && fourberie.fourberie.donsEquivalentRef && fourberie.fourberie.donsEquivalentRef.length > 0) {
+        if (fourberie?.fourberie?.donsEquivalentRef?.length) {
           fourberie.fourberie.donsEquivalentRef.forEach(aptDonRef => {
             let donItem = new DonItem();
             donItem.niveauObtention = fourberie.niveauObtention;
@@ -394,9 +388,9 @@ export class DonService {
     }
 
     // Dons Aptitudes (Équivalence)
-    if (personnage.aptitudes) {
+    if (personnage?.aptitudes?.length) {
       personnage.aptitudes.forEach(aptitude => {
-        if (aptitude.aptitude && aptitude.aptitude.donsEquivalentRef) {
+        if (aptitude?.aptitude?.donsEquivalentRef?.length) {
           aptitude.aptitude.donsEquivalentRef.forEach(aptDonRef => {
             let donItem = new DonItem();
             donItem.niveauObtention = aptitude.niveauObtention;
@@ -408,55 +402,27 @@ export class DonService {
     }
 
     // Remplis la liste de dons complète
-    let count: number = 0;
-    if (!personnage.dons) personnage.dons = [];
-
-    if (personnage.dons && personnage.dons.length > 0) {
-
-      personnage.dons.forEach(async (donItem) => {
-
-        if (!donItem.don) { //Avoid fetching Don if already fetch
-          const don = await this.getDon(donItem.donRef, false, true);
-          donItem.don = don;
-          count++;
-          if (count == personnage.dons.length) {
-
-            // Filter duplicated
-            personnage.dons = personnage.dons.filter((don, index, self) =>
-              index === self.findIndex((d) => (
-                d.donRef === don.donRef
-              ))
-            )
-
-            return personnage;
-          }
-
-        } else {
-          count++;
-          if (count == personnage.dons.length) {
-
-            // Filter duplicated
-            personnage.dons = personnage.dons.filter((don, index, self) =>
-              index === self.findIndex((d) => (
-                d.donRef === don.donRef
-              ))
-            )
-
-            return personnage;
-          }
-        }
-
-      });
-
-    } else {
-      return personnage;
+    if (personnage?.dons?.length) {
+      await Promise.all(
+        personnage.dons.map(async (donItem) => {
+          donItem.don = await this.getDon(donItem.donRef, false, true);
+        })
+      );
     }
 
+    // Filter duplicated
+    personnage.dons = personnage.dons.filter((don, index, self) =>
+      index === self.findIndex((d) => (
+        d.donRef === don.donRef
+      ))
+    )
+
+    return personnage;
   }
 
   public async getPersonnageDonsNiveauEffectif(personnage: IPersonnage): Promise<IPersonnage> {
 
-    if (personnage.dons && personnage.statistiques) {
+    if (personnage?.dons?.length && personnage?.statistiques?.length) {
       personnage.dons.forEach(donItem => {
 
         if (donItem.don.afficherNiveau) {
@@ -566,37 +532,45 @@ export class DonService {
   //   }
   // }
 
-  private _getImmunites(don: IDon): void {
-    if (don.immunitesRef) {
-      don.immunitesRef.forEach(async (immuniteRef) => {
-        if (!don.immunites) don.immunites = [];
-        don.immunites.push(await this.immuniteService.getImmunite(immuniteRef));
-      });
+  private async _getImmunites(don: IDon): Promise<void> {
+    if (don?.immunitesRef?.length) {
+      await Promise.all<any>(
+        don.immunitesRef.map(async (immuniteRef) => {
+          if (!don.immunites) don.immunites = [];
+          don.immunites.push(await this.immuniteService.getImmunite(immuniteRef));
+        })
+      )
     }
   }
 
-  private _getResistances(don: IDon): void {
-    if (don.resistances && don.resistances.length > 0) {
-      don.resistances.forEach(async (resistanceItem: ResistanceItem) => {
-        resistanceItem.resistance = await this.resistanceService.getResistance(resistanceItem.resistanceRef);
-      });
+  private async _getResistances(don: IDon): Promise<void> {
+    if (don?.resistances?.length) {
+      await Promise.all<any>(
+        don.resistances.map(async (resistanceItem: ResistanceItem) => {
+          resistanceItem.resistance = await this.resistanceService.getResistance(resistanceItem.resistanceRef);
+        })
+      )
     }
   }
 
-  private _getStatistiques(don: IDon): void {
-    if (don.statistiques && don.statistiques.length > 0) {
-      don.statistiques.forEach(async (statistiqueItem: StatistiqueItem) => {
-        statistiqueItem.statistique = await this.statistiqueService.getStatistique(statistiqueItem.statistiqueRef);
-      });
+  private async _getStatistiques(don: IDon): Promise<void> {
+    if (don?.statistiques?.length) {
+      await Promise.all<any>(
+        don.statistiques.map(async (statistiqueItem) => {
+          statistiqueItem.statistique = await this.statistiqueService.getStatistique(statistiqueItem.statistiqueRef);
+        })
+      );
     }
   }
 
-  private _getModificateur(don: IDon): void {
-    if (don.modificateursRef && don.modificateursRef.length > 0) {
-      don.modificateursRef.forEach(async (modificateurRef) => {
-        if (!don.modificateurs) don.modificateurs = [];
-        don.modificateurs.push(await this.statistiqueService.getStatistique(modificateurRef));
-      });
+  private async _getModificateur(don: IDon): Promise<void> {
+    if (don?.modificateursRef?.length) {
+      await Promise.all<any>(
+        don.modificateursRef.map(async (modificateurRef) => {
+          if (!don.modificateurs) don.modificateurs = [];
+          don.modificateurs.push(await this.statistiqueService.getStatistique(modificateurRef));
+        })
+      );
     }
   }
 

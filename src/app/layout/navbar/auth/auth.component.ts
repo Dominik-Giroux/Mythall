@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import { AuthenticationService } from '../../../services/@core/authentication.service';
-import { IUser } from '../../../services/@core/user.service';
+import { AuthenticationService } from '../../../services/authentication.service';
+import { IUser } from '../../../services/user.service';
 
 @Component({
   selector: 'app-navbar-auth',
@@ -16,7 +16,11 @@ export class NavbarAuthComponent implements OnInit {
   user: IUser;
 
   ngOnInit() {
-    this.auth.user$.subscribe(response => this.user = response);
+    this._getUser();
+  }
+
+  public async _getUser(): Promise<void> {
+    this.user = await this.auth.user();
   }
 
 }

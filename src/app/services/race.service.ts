@@ -50,8 +50,8 @@ export class RaceService {
     private sortService: SortService
   ) { }
 
-  public async getRaces(full?: boolean): Promise<IRace[]> {
-    const races = (await this.afs.collection<IRace>('races').ref.orderBy('nom').get()).docs
+  public async getRaces(): Promise<IRace[]> {
+    return (await this.afs.collection<IRace>('races').ref.orderBy('nom').get()).docs
       .map((doc) => {
         return {
           id: doc.id,
@@ -61,12 +61,6 @@ export class RaceService {
       .sort((a: IRace, b: IRace) => {
         return a.nom.localeCompare(b.nom);
       })
-
-    if (full) {
-      races.forEach(race => this._getClasses(race));
-    }
-
-    return races;
   }
 
   public async getRace(id: string, full?: boolean): Promise<IRace> {
@@ -77,12 +71,14 @@ export class RaceService {
     } as IRace;
 
     if (full) {
-      this._getClasses(race);
-      this._getResistances(race);
-      this._getStatistiques(race);
-      this._getImmunites(race);
-      this._getSortsRaciaux(race);
-      this._getDonsRaciaux(race);
+      await Promise.all([
+        this._getClasses(race),
+        this._getResistances(race),
+        this._getStatistiques(race),
+        this._getImmunites(race),
+        this._getSortsRaciaux(race),
+        this._getDonsRaciaux(race)
+      ]);
     }
 
     return race;
@@ -142,57 +138,67 @@ export class RaceService {
     };
   }
 
-  private _getClasses(race: IRace): void {
-    if (race.classesDisponibleRef) {
-      race.classesDisponibleRef.forEach(async (classeRef) => {
-        const classe = await this.classeService.getClasse(classeRef);
-        if (!race.classesDisponible) race.classesDisponible = [];
-        race.classesDisponible.push(classe);
-      });
+  private async _getClasses(race: IRace): Promise<void> {
+    if (race?.classesDisponibleRef?.length) {
+      await Promise.all(
+        race.classesDisponibleRef.map(async (classeRef) => {
+          if (!race.classesDisponible) race.classesDisponible = [];
+          race.classesDisponible.push(await this.classeService.getClasse(classeRef));
+        })
+      )
     }
   }
 
-  private _getResistances(race: IRace): void {
-    if (race.resistances && race.resistances.length > 0) {
-      race.resistances.forEach(async (resistanceItem: ResistanceItem) => {
-        resistanceItem.resistance = await this.resistanceService.getResistance(resistanceItem.resistanceRef);
-      });
+  private async _getResistances(race: IRace): Promise<void> {
+    if (race?.resistances?.length) {
+      await Promise.all(
+        race.resistances.map(async (resistanceItem) => {
+          resistanceItem.resistance = await this.resistanceService.getResistance(resistanceItem.resistanceRef);
+        })
+      )
     }
   }
 
-  private _getStatistiques(race: IRace): void {
-    if (race.statistiques && race.statistiques.length > 0) {
-      race.statistiques.forEach(async (statistiqueItem: StatistiqueItem) => {
-        statistiqueItem.statistique = await this.statistiqueService.getStatistique(statistiqueItem.statistiqueRef);
-      });
+  private async _getStatistiques(race: IRace): Promise<void> {
+    if (race?.statistiques?.length) {
+      await Promise.all(
+        race.statistiques.map(async (statistiqueItem) => {
+          statistiqueItem.statistique = await this.statistiqueService.getStatistique(statistiqueItem.statistiqueRef);
+        })
+      )
     }
   }
 
-  private _getImmunites(race: IRace): void {
-    if (race.immunitesRef) {
-      race.immunitesRef.forEach(async (immuniteRef) => {
-        if (!race.immunites) race.immunites = [];
-        race.immunites.push(await this.immuniteService.getImmunite(immuniteRef));
-      });
+  private async _getImmunites(race: IRace): Promise<void> {
+    if (race?.immunitesRef?.length) {
+      await Promise.all(
+        race.immunitesRef.map(async (immuniteRef) => {
+          if (!race.immunites) race.immunites = [];
+          race.immunites.push(await this.immuniteService.getImmunite(immuniteRef));
+        })
+      )
     }
   }
 
-  private _getSortsRaciaux(race: IRace): void {
-    if (race.sortsRacialRef) {
-      race.sortsRacialRef.forEach(async (sortRaciauxRef) => {
-        if (!race.sortsRacial) race.sortsRacial = [];
-        race.sortsRacial.push(await this.sortService.getSort(sortRaciauxRef));
-      });
+  private async _getSortsRaciaux(race: IRace): Promise<void> {
+    if (race?.sortsRacialRef?.length) {
+      await Promise.all(
+        race.sortsRacialRef.map(async (sortRaciauxRef) => {
+          if (!race.sortsRacial) race.sortsRacial = [];
+          race.sortsRacial.push(await this.sortService.getSort(sortRaciauxRef));
+        })
+      )
     }
   }
 
-  private _getDonsRaciaux(race: IRace) {
-    if (race.donsRacialRef) {
-      race.donsRacialRef.forEach(async (donRaciauxRef) => {
-        const don = await this.donService.getDon(donRaciauxRef);
-        if (!race.donsRacial) race.donsRacial = [];
-        race.donsRacial.push(don);
-      });
+  private async _getDonsRaciaux(race: IRace): Promise<void> {
+    if (race?.donsRacialRef?.length) {
+      await Promise.all(
+        race.donsRacialRef.map(async (donRaciauxRef) => {
+          if (!race.donsRacial) race.donsRacial = [];
+          race.donsRacial.push(await this.donService.getDon(donRaciauxRef));
+        })
+      )
     }
   }
 

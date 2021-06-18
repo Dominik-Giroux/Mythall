@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Router, ActivatedRoute, Params } from '@angular/router';
 import { ResistanceService, IResistance } from '../../../../services/resistance.service';
-import { ToastService } from '../../../../services/@core/toast.service';
+import { ToastService } from '../../../../services/toast.service';
 
 @Component({
   selector: 'app-organisateur-resistances-form',

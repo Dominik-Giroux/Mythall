@@ -1,8 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Params } from '@angular/router';
-import { AuthenticationService } from '../../../../services/@core/authentication.service';
+import { AuthenticationService } from '../../../../services/authentication.service';
 import { PersonnageService, IPersonnage } from '../../../../services/personnage.service';
-import { IUser } from '../../../../services/@core/user.service';
+import { IUser } from '../../../../services/user.service';
 
 @Component({
   selector: 'app-joueur-fiche-personnage',
@@ -17,14 +17,16 @@ export class JoueurPersonnageFicheComponent implements OnInit {
   ) { }
 
   id: string;
+  user: IUser;
   personnage = {} as IPersonnage;
 
   ngOnInit() {
+    this._getUser();
     this._getPersonnage();
   }
 
-  public get user(): IUser {
-    return this.auth.user;
+  public async _getUser(): Promise<void> {
+    this.user = await this.auth.user();
   }
 
   private _getPersonnage(): void {

@@ -1,9 +1,10 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatStepper } from '@angular/material/stepper';
-import { AuthenticationService } from '../../../../services/@core/authentication.service';
-import { PersonnageService, IPersonnage, Choix } from '../../../../services/personnage.service';
+import { AuthenticationService } from '../../../../services/authentication.service';
+import { PersonnageService, IPersonnage } from '../../../../services/personnage.service';
 import { ClasseItem } from '../../../../services/classe.service';
+import { Choix, ChoixService } from '../../../../services/choix.service';
 
 @Component({
   selector: 'app-joueur-personnages-creation-progression',
@@ -14,6 +15,7 @@ export class JoueurPersonnageCreationProgressionComponent implements OnInit {
 
   constructor(
     private auth: AuthenticationService,
+    private choixService: ChoixService,
     private personnageService: PersonnageService,
     private route: ActivatedRoute,
     private router: Router
@@ -86,7 +88,7 @@ export class JoueurPersonnageCreationProgressionComponent implements OnInit {
       } else {
 
         //Set Personnage User
-        this.personnage.userRef = this.auth.user.uid;
+        this.personnage.userRef = (await this.auth.user()).uid;
 
         // Alignement exist if creation
         if (!this.progression) {
@@ -103,7 +105,7 @@ export class JoueurPersonnageCreationProgressionComponent implements OnInit {
   private async getChoixPersonnage(): Promise<void> {
 
     // Get Choix
-    const listChoix = await this.personnageService.getChoixPersonnage(this.personnage, this.selectedClasse);
+    const listChoix = await this.choixService.getChoixPersonnage(this.personnage, this.selectedClasse);
 
     // Set Choix
     this.choixPersonnage = listChoix;

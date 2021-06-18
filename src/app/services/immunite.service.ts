@@ -54,12 +54,12 @@ export class ImmuniteService {
     if (!personnage.immunites) personnage.immunites = [];
 
     //Race Immunites
-    if (personnage.race.immunites) {
+    if (personnage?.race?.immunites?.length) {
       personnage.immunites = [...personnage.immunites, ...personnage.race.immunites];
     }
 
     //Classes Immunites
-    if (personnage.classes && personnage.classes.length > 0) {
+    if (personnage?.classes?.length) {
       personnage.classes.forEach(classeItem => {
         if (classeItem.classe.immunites) {
           personnage.immunites = [...personnage.immunites, ...classeItem.classe.immunites];
@@ -68,16 +68,16 @@ export class ImmuniteService {
     }
 
     //Aptitudes Immunites
-    if (personnage.aptitudes) {
+    if (personnage?.aptitudes?.length) {
       personnage.aptitudes.forEach(aptitudeItem => {
-        if (aptitudeItem.aptitude && aptitudeItem.aptitude.immunites) {
+        if (aptitudeItem?.aptitude?.immunites?.length) {
           personnage.immunites = [...personnage.immunites, ...aptitudeItem.aptitude.immunites];
         }
       })
     }
 
     //Dons Immunites
-    if (personnage.dons) {
+    if (personnage?.dons?.length) {
       personnage.dons.forEach(donItem => {
         if (donItem.don && donItem.don.immunites) {
           personnage.immunites = [...personnage.immunites, ...donItem.don.immunites];
@@ -86,7 +86,6 @@ export class ImmuniteService {
     }
 
     return personnage;
-
   }
 
   private _saveState(item: IImmunite): IImmuniteDB {

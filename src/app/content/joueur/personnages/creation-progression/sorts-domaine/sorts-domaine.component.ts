@@ -1,6 +1,7 @@
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import { MatStepper } from '@angular/material/stepper';
-import { PersonnageService, IPersonnage, Choix } from '../../../../../services/personnage.service';
+import { Choix } from '../../../../../services/choix.service';
+import { PersonnageService, IPersonnage, } from '../../../../../services/personnage.service';
 import { IDon } from '../../../../../services/don.service';
 
 @Component({

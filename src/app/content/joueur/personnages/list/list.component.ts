@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
-import { AuthenticationService } from '../../../../services/@core/authentication.service';
+import { AuthenticationService } from '../../../../services/authentication.service';
 import { PersonnageService, IPersonnage } from '../../../../services/personnage.service';
-import { IUser } from '../../../../services/@core/user.service';
+import { IUser } from '../../../../services/user.service';
 
 @Component({
   selector: 'app-joueur-personnages-list',
@@ -14,14 +14,15 @@ export class JoueurPersonnagesListComponent {
     private personnageService: PersonnageService
   ) { }
 
-  public personnages: IPersonnage[] = [];
+  user: IUser;
+  personnages: IPersonnage[] = [];
 
   ngOnInit() {
     this._getPersonnages();
   }
 
-  public get user(): IUser {
-    return this.auth.user;
+  public async _getUser(): Promise<void> {
+    this.user = await this.auth.user();
   }
 
   private async _getPersonnages(): Promise<void> {
